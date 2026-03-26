@@ -47,7 +47,6 @@
     input, select { background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px; padding: 8px; }
     .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 32px; height: 32px; font-weight: bold; }
 
-    /* Modal */
     #modal-pg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
     .modal-box { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 100%; max-width: 320px; border: 1px solid var(--blue); }
     .btn-pg { width: 100%; padding: 14px; margin: 6px 0; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
@@ -56,7 +55,7 @@
 <body>
 
   <button id="btn-instalar" onclick="dispararInstalacao()">📲 INSTALAR NO TABLET</button>
-  <button id="alerta-backup" onclick="exportarJSON()">⚠️ SALVAR BACKUP (7 DIAS SEM SALVAR)</button>
+  <button id="alerta-backup" onclick="exportarJSON()">⚠️ SALVAR BACKUP AGORA</button>
 
   <div class="container">
     <header>
@@ -90,11 +89,17 @@
         <div class="card" style="grid-column: span 2; border-bottom-color: var(--red);">
           <div style="display:flex; justify-content: space-between;"><h2>Cartão (Limite Disp.)</h2><span id="res-gasto-cartao" style="font-size:0.6rem">Gasto: R$ 0,00</span></div>
           <p id="res-fatura" style="font-size: 1.1rem;">R$ 0,00</p>
+          <div class="barra-box"><div id="bar-cartao" class="progresso"></div></div>
         </div>
       </div>
       <div class="secao" style="margin-top:15px;">
         <h3>Limite do Cartão</h3>
         <input type="number" id="input-limite" style="width:100%" onchange="dados.config.limiteCartao = parseFloat(this.value)||0; salvar();">
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button onclick="exportarJSON()" style="padding:15px; background:var(--blue); color:white; border:none; border-radius:8px; font-weight:700;">📤 Backup</button>
+        <button onclick="document.getElementById('input-import').click()" style="padding:15px; background:#444; color:white; border:none; border-radius:8px;">📥 Importar</button>
+        <input type="file" id="input-import" style="display:none" onchange="importarJSON(event)">
       </div>
     </main>
 
@@ -102,10 +107,10 @@
       <div class="secao">
         <h3>Receitas</h3>
         <div id="lista-receitas"></div>
-        <button onclick="addReceita()" style="width:100%; padding:12px; background:var(--green); color:white; border:none; border-radius:8px; margin-top:10px; font-weight:700;">+ Nova Receita</button>
+        <button onclick="addReceita()" style="width:100%; padding:12px; background:var(--green); color:white; border:none; border-radius:8px; margin-top:10px; font-weight:700;">+ Receita</button>
       </div>
       <div class="secao" style="border-left: 4px solid var(--yellow);">
-        <h3>Pagamento/Antecipação de Fatura</h3>
+        <h3>Pagamento de Fatura</h3>
         <div id="lista-fatura"></div>
         <div style="background:#1a1a1a; padding:12px; border-radius:12px; margin-top:10px;">
           <input type="date" id="fat-data" style="width:48%">
@@ -123,10 +128,10 @@
       <div class="secao">
         <h3>Contas Fixas</h3>
         <div id="lista-fixas"></div>
-        <button onclick="addDespesaFixa()" style="width:100%; padding:12px; background:var(--purple); color:white; border:none; border-radius:8px; margin-top:10px; font-weight:700;">+ Nova Conta</button>
+        <button onclick="addDespesaFixa()" style="width:100%; padding:12px; background:var(--purple); color:white; border:none; border-radius:8px; margin-top:10px;">+ Conta</button>
       </div>
       <div class="secao">
-        <h3>Despesas Avulsas</h3>
+        <h3>Compras Avulsas</h3>
         <div id="lista-diversas"></div>
         <div style="background:#1a1a1a; padding:12px; border-radius:12px; margin-top:10px;">
           <input type="text" id="var-desc" placeholder="Descrição" style="width:100%; margin-bottom:8px;">
@@ -152,7 +157,7 @@
   </div></div>
 
   <script>
-    const STORAGE_KEY = "Financas_Marcus_v2_7_6";
+    const STORAGE_KEY = "Financas_Marcus_v2_7_7";
     let dados = JSON.parse(localStorage.getItem(STORAGE_KEY)) || inicializar();
     let itemParaPagar = null;
 
@@ -200,16 +205,14 @@
       const info = dados[mes];
       let bruta=0, vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0, pFat=0;
 
-      // Cálculo de Receitas Isolado
       info.receitas.forEach(r => { 
         const v = parseFloat(r.valor||0); bruta += v;
         const n = r.desc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         if (n.includes("adiant")) vAdiant += v; 
         else if (n.includes("salario")) vSal += v; 
-        else vExtra += v; // Aqui só cai o que for Extra Real
+        else vExtra += v;
       });
 
-      // Gastos Fixos e Variáveis
       [...info.fixas, ...info.variaveis].forEach(it => {
         if(it.categoria && !it.paga && it.meio !== 'credito') return; 
         const v = parseFloat(it.valor||0);
@@ -221,26 +224,26 @@
         }
       });
 
-      // Pagamentos de Fatura
       (info.pagamentosFatura||[]).forEach(p => {
         const v = parseFloat(p.valor||0); pFat += v;
         if(p.meio === 'extra') pExtra += v; 
         else { const d = parseInt(p.data.split('-')[2]); if(d <= 15) pAdiant += v; else pSal += v; }
       });
 
-      // UI
+      const saldoDevedor = gCartao - pFat;
+      const limiteDisp = dados.config.limiteCartao - saldoDevedor;
+
       document.getElementById("res-bruta").innerText = formatar(bruta);
       document.getElementById("res-extra").innerText = formatar(vExtra - pExtra);
       document.getElementById("res-adiant").innerText = formatar(vAdiant - pAdiant);
       document.getElementById("res-salario").innerText = formatar(vSal - pSal);
-      const real = gCartao - pFat;
-      document.getElementById("res-fatura").innerText = formatar(dados.config.limiteCartao - real);
-      document.getElementById("res-gasto-cartao").innerText = `Gasto: ${formatar(real)}`;
+      document.getElementById("res-fatura").innerText = formatar(limiteDisp);
+      document.getElementById("res-gasto-cartao").innerText = `Gasto: ${formatar(saldoDevedor)}`;
 
-      // Atualizar Barras de Progresso
       pintarBarra("bar-extra", pExtra, vExtra);
       pintarBarra("bar-adiant", pAdiant, vAdiant);
       pintarBarra("bar-salario", pSal, vSal);
+      pintarBarra("bar-cartao", saldoDevedor, dados.config.limiteCartao);
     }
 
     function pintarBarra(id, gasto, total) {
