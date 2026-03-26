@@ -8,39 +8,28 @@
   
   <style>
     :root { 
-      --blue: #0078d4; /* Windows 11 Blue */
-      --green: #107c10; 
-      --yellow: #ffb900; 
-      --purple: #8764b8; 
-      --red: #d13438; 
-      --bg: #1c1c1c; 
-      --card-bg: #2b2b2b;
-      --border: #3c3c3c;
+      --blue: #0078d4; --green: #107c10; --yellow: #ffb900; --purple: #8764b8; --red: #d13438; 
+      --bg: #1c1c1c; --card-bg: #2b2b2b; --border: #3c3c3c;
     }
     * { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; touch-action: manipulation; }
     body { margin: 0; background: var(--bg); color: #ffffff; overflow-x: hidden; width: 100vw; }
     
-    /* Banners de Sistema */
     #btn-instalar, #alerta-backup { display: none; width: 100%; padding: 14px; border: none; font-weight: 800; font-size: 0.8rem; text-align: center; cursor: pointer; }
     #btn-instalar { background: var(--yellow); color: #000; border-radius: 0 0 15px 15px; }
     #alerta-backup { background: var(--red); color: #fff; border-radius: 0 0 10px 10px; margin-top: 2px; }
 
     .container { width: 100%; padding: 10px; min-height: 100vh; display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; }
-    
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 5px; }
     h1 { font-size: 0.95rem; margin: 0; color: var(--blue); font-weight: 700; text-transform: uppercase; }
 
-    /* Estilo Abas Windows 11 */
     .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; border: 1px solid var(--border); }
     .tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; color: #a1a1a1; font-size: 0.7rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: 0.2s; }
     .tab-btn.active { background: #323232; color: var(--blue); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: slideIn 0.3s ease; }
-
     @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Grid de Cards (2 colunas mobile, 4 colunas tablet) */
     .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (min-width: 600px) { .cards-grid { grid-template-columns: repeat(4, 1fr); } }
 
@@ -51,7 +40,6 @@
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
     .secao h3 { margin: 0 0 15px 0; font-size: 0.8rem; color: var(--blue); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 
-    /* Listas e Itens */
     .linha-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #383838; gap: 10px; width: 100%; }
     .info-area { display: flex; flex: 1; align-items: center; justify-content: space-between; min-width: 0; }
     .desc-txt { font-size: 0.8rem; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -60,11 +48,9 @@
     .input-valor { width: 85px; height: 32px; text-align: right; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px; font-size: 0.8rem; }
     .btn-del { background: var(--red); width: 32px; height: 32px; border-radius: 8px; border: none; color: white; font-size: 1.2rem; }
 
-    /* Barra de Progresso / Gráfico Simples */
     .grafico-barra { width: 100%; height: 25px; background: #1a1a1a; border-radius: 5px; overflow: hidden; margin: 10px 0; display: flex; }
     .progresso { height: 100%; transition: width 0.5s ease; }
 
-    /* Modal */
     #modal-pagamento { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
     .modal-content { background: #2a2a2a; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
     .modal-grid { display: grid; gap: 10px; margin-top: 20px; }
@@ -73,8 +59,8 @@
 </head>
 <body>
 
-  <button id="btn-instalar" onclick="dispararInstalacao()">📲 INSTALAR ERP MS INFORMAÁTICA</button>
-  <button id="alerta-backup" onclick="exportarJSON()">⚠️ BACKUP PENDENTE (SALVAR EM NUVEM/LOCAL)</button>
+  <button id="btn-instalar" onclick="dispararInstalacao()">📲 INSTALAR ERP MS</button>
+  <button id="alerta-backup" onclick="exportarJSON()">⚠️ BACKUP PENDENTE</button>
 
   <div class="container">
     <header>
@@ -91,10 +77,10 @@
 
     <main id="aba-resumo" class="tab-content active">
       <div class="cards-grid">
-        <div class="card" style="border-bottom-color: var(--yellow);"><h2>Renda Bruta</h2><p id="res-bruta">R$ 0</p></div>
+        <div class="card" style="border-bottom-color: var(--yellow);"><h2>Bruta</h2><p id="res-bruta">R$ 0</p></div>
         <div class="card" style="border-bottom-color: var(--purple);"><h2>Extra Livre</h2><p id="res-extra">R$ 0</p></div>
-        <div class="card" style="border-bottom-color: var(--blue);"><h2>Saldo Adiant.</h2><p id="res-adiant">R$ 0</p></div>
-        <div class="card" style="border-bottom-color: var(--green);"><h2>Saldo Salário</h2><p id="res-salario">R$ 0</p></div>
+        <div class="card" style="border-bottom-color: var(--blue);"><h2>Adiant.</h2><p id="res-adiant">R$ 0</p></div>
+        <div class="card" style="border-bottom-color: var(--green);"><h2>Salário</h2><p id="res-salario">R$ 0</p></div>
         <div class="card" style="grid-column: span 2; border-bottom-color: var(--yellow);">
           <div style="display:flex; justify-content: space-between;">
             <h2>Cartão de Crédito</h2>
@@ -104,11 +90,19 @@
         </div>
       </div>
       
-      <div class="secao" style="margin-top: 15px;">
+      <div class="secao" style="margin-top: 15px; border-left: 4px solid var(--yellow);">
+        <h3>Configuração de Cartão</h3>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 0.8rem;">Limite do Cartão:</span>
+          <input type="number" id="input-limite" class="input-valor" style="flex: 1;" onchange="dados.config.limiteCartao = parseFloat(this.value) || 0; salvar();" placeholder="2000">
+        </div>
+      </div>
+
+      <div class="secao">
         <h3>Ações de Dados</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <button onclick="exportarJSON()" style="background: #444; height: 44px; border-radius: 8px; border:none; color:white; font-weight: 600;">📤 Exportar Backup</button>
-          <button onclick="document.getElementById('input-import').click()" style="background: #444; height: 44px; border-radius: 8px; border:none; color:white; font-weight: 600;">📥 Restaurar Dados</button>
+          <button onclick="exportarJSON()" style="background: #444; height: 44px; border-radius: 8px; border:none; color:white;">📤 Backup</button>
+          <button onclick="document.getElementById('input-import').click()" style="background: #444; height: 44px; border-radius: 8px; border:none; color:white;">📥 Restaurar</button>
           <input type="file" id="input-import" style="display: none;" onchange="importarJSON(event)">
         </div>
       </div>
@@ -118,18 +112,18 @@
       <div class="secao">
         <h3>Entradas Mensais</h3>
         <div id="lista-receitas"></div>
-        <button style="width:100%; height:44px; background: var(--green); border:none; border-radius: 8px; color:white; font-weight:700; margin-top:10px;" onclick="addReceita()">+ Nova Receita / Extra</button>
+        <button style="width:100%; height:44px; background: var(--green); border:none; border-radius: 8px; color:white; font-weight:700; margin-top:10px;" onclick="addReceita()">+ Nova Receita</button>
       </div>
 
       <div class="secao" style="border-left: 4px solid var(--green);">
-        <h3>Pagamento de Fatura (Antecipação)</h3>
+        <h3>Antecipação de Fatura</h3>
         <div id="lista-antecipacoes"></div>
-        <div style="background: #1a1a1a; padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid #333;">
+        <div style="background: #1a1a1a; padding: 12px; border-radius: 12px; margin-top: 10px;">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-            <input type="date" id="ant-data" style="width:100%; background:#121212; color:white; border:1px solid #444; border-radius:6px; padding:5px;">
-            <input type="number" id="ant-valor" placeholder="R$ Valor" step="0.01" inputmode="decimal" class="input-valor" style="width: 100%;">
+            <input type="date" id="ant-data" style="background:#121212; color:white; border:1px solid #444; border-radius:6px; padding:5px;">
+            <input type="number" id="ant-valor" placeholder="R$ Valor" step="0.01" class="input-valor" style="width: 100%;">
           </div>
-          <button onclick="registrarPagamentoFatura()" style="width:100%; background: var(--green); height: 40px; border-radius: 8px; border:none; color:white; font-weight: 700;">Registrar Antecipação</button>
+          <button onclick="registrarPagamentoFatura()" style="width:100%; background: var(--green); height: 40px; border-radius: 8px; border:none; color:white; font-weight: 700;">Confirmar Antecipação</button>
         </div>
       </div>
     </main>
@@ -142,14 +136,14 @@
       </div>
 
       <div class="secao">
-        <h3>Compras Variáveis / Diversas</h3>
+        <h3>Compras Diversas</h3>
         <div id="lista-diversas"></div>
-        <div style="background: #1a1a1a; padding: 12px; border-radius: 12px; margin-top: 15px; border: 1px solid #333;">
+        <div style="background: #1a1a1a; padding: 12px; border-radius: 12px; margin-top: 15px;">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-            <input type="date" id="var-data" style="width:100%; background:#121212; color:white; border:1px solid #444; border-radius:6px; padding:5px;">
-            <input type="number" id="var-valor" placeholder="R$ Valor" step="0.01" inputmode="decimal" class="input-valor" style="width: 100%;">
+            <input type="date" id="var-data" style="background:#121212; color:white; border:1px solid #444; border-radius:6px; padding:5px;">
+            <input type="number" id="var-valor" placeholder="R$ Valor" step="0.01" class="input-valor" style="width: 100%;">
           </div>
-          <input type="text" id="var-desc" placeholder="O que você comprou?" style="width: 100%; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+          <input type="text" id="var-desc" placeholder="Descrição" style="width: 100%; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
           <div style="display: flex; gap: 8px;">
             <select id="var-meio" style="flex: 1.5; background: #121212; color: white; border: 1px solid #444; border-radius: 8px; padding: 5px;">
               <option value="debito">💰 Débito</option>
@@ -164,42 +158,35 @@
 
     <main id="aba-dashboard" class="tab-content">
       <div class="secao">
-        <h3>Distribuição de Gastos</h3>
-        <div id="dash-info">
-          <p style="font-size: 0.75rem; color:#b0b0b0;">Abaixo você vê quanto cada meio de pagamento consome da sua renda total.</p>
+        <h3>Peso dos Gastos por Fonte</h3>
+        <div style="margin-top:20px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span>💰 Débito (Salário)</span> <span id="pct-debito">0%</span></div>
+          <div class="grafico-barra"><div id="bar-debito" class="progresso" style="background:var(--blue); width:0%;"></div></div>
           
-          <div style="margin-top:20px;">
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span>💰 Débito (Salário)</span> <span id="pct-debito">0%</span></div>
-            <div class="grafico-barra"><div id="bar-debito" class="progresso" style="background:var(--blue); width:0%;"></div></div>
-            
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:15px;"><span>💳 Cartão de Crédito</span> <span id="pct-credito">0%</span></div>
-            <div class="grafico-barra"><div id="bar-credito" class="progresso" style="background:var(--yellow); width:0%;"></div></div>
-            
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:15px;"><span>✨ Renda Extra</span> <span id="pct-extra">0%</span></div>
-            <div class="grafico-barra"><div id="bar-extra" class="progresso" style="background:var(--purple); width:0%;"></div></div>
-          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:15px;"><span>💳 Cartão de Crédito</span> <span id="pct-credito">0%</span></div>
+          <div class="grafico-barra"><div id="bar-credito" class="progresso" style="background:var(--yellow); width:0%;"></div></div>
+          
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:15px;"><span>✨ Renda Extra</span> <span id="pct-extra">0%</span></div>
+          <div class="grafico-barra"><div id="bar-extra" class="progresso" style="background:var(--purple); width:0%;"></div></div>
         </div>
       </div>
-      
       <div class="secao" style="border-left: 4px solid var(--yellow);">
-        <h3>Saúde Financeira</h3>
+        <h3>Feedback de Saúde Financeira</h3>
         <p id="feedback-financeiro" style="font-size: 0.85rem; line-height: 1.4;"></p>
       </div>
     </main>
   </div>
 
-  <div id="modal-pagamento">
-    <div class="modal-content">
-      <h3 style="color: var(--blue); margin: 0;">Confirmar Pagamento</h3>
-      <p id="modal-item-nome" style="font-size: 0.8rem; color: #9ca3af; margin: 15px 0;"></p>
-      <div class="modal-grid">
-        <button class="btn-modal" onclick="processarEscolhaFixa('debito')" style="background: var(--green);">💰 DÉBITO (SALÁRIO)</button>
-        <button class="btn-modal" onclick="processarEscolhaFixa('credito')" style="background: var(--yellow); color: black;">💳 CARTÃO (CRÉDITO)</button>
-        <button class="btn-modal" onclick="processarEscolhaFixa('extra')" style="background: var(--purple);">✨ RENDA EXTRA</button>
-      </div>
-      <button onclick="fecharModal()" style="margin-top: 20px; background: transparent; color: var(--red); border: 1px solid var(--red); width: 100%; height: 40px; border-radius: 10px;">Voltar</button>
+  <div id="modal-pagamento"><div class="modal-content">
+    <h3 style="color: var(--blue); margin: 0;">Meio de Pagamento</h3>
+    <p id="modal-item-nome" style="font-size: 0.8rem; color: #9ca3af; margin: 15px 0;"></p>
+    <div class="modal-grid">
+      <button class="btn-modal" onclick="processarEscolhaFixa('debito')" style="background: var(--green);">💰 DÉBITO</button>
+      <button class="btn-modal" onclick="processarEscolhaFixa('credito')" style="background: var(--yellow); color: black;">💳 CARTÃO</button>
+      <button class="btn-modal" onclick="processarEscolhaFixa('extra')" style="background: var(--purple);">✨ EXTRA</button>
     </div>
-  </div>
+    <button onclick="fecharModal()" style="margin-top: 20px; background: transparent; color: var(--red); border: 1px solid var(--red); width: 100%; height: 40px; border-radius: 10px;">Voltar</button>
+  </div></div>
 
   <script>
     const STORAGE_KEY = "Financas_Marcus_v1_9";
@@ -228,39 +215,90 @@
     function renderizar() {
       const mes = document.getElementById("mes_select").value;
       const info = dados[mes] || inicializar()[mes];
+      document.getElementById("input-limite").value = dados.config.limiteCartao;
 
       document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `
-        <div class="linha-item">
-          <span class="desc-txt" style="font-weight:700;">${r.desc}</span>
-          <input type="number" step="0.01" class="input-valor" value="${(r.valor||0).toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value)||0;salvar()">
-          <button onclick="removerItem('receitas', ${i})" class="btn-del">×</button>
-        </div>`).join('');
+        <div class="linha-item"><span class="desc-txt">${r.desc}</span>
+        <input type="number" step="0.01" class="input-valor" value="${(r.valor||0).toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value)||0;salvar()">
+        <button onclick="removerItem('receitas', ${i})" class="btn-del">×</button></div>`).join('');
 
       document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => {
         const icone = f.paga ? (f.meio === 'credito' ? '💳' : f.meio === 'extra' ? '✨' : '💰') : '⏳';
         return `<div class="linha-item" style="${f.paga ? 'opacity: 0.5' : ''}">
           <input type="checkbox" ${f.paga ? 'checked' : ''} onchange="abrirModalPagamento(${i}, this.checked)" style="width:22px; height:22px;">
-          <div class="info-area"><span class="desc-txt">${f.categoria}</span><span class="valor-txt">${formatar(f.valor)}</span><span style="font-size:0.7rem">${icone}</span></div>
-          <button onclick="removerItem('fixas', ${i})" class="btn-del">×</button>
-        </div>`;
+          <div class="info-area"><span class="desc-txt">${f.categoria}</span><span class="valor-txt">${formatar(f.valor)}</span><span>${icone}</span></div>
+          <button onclick="removerItem('fixas', ${i})" class="btn-del">×</button></div>`;
       }).join('');
 
       document.getElementById("lista-diversas").innerHTML = info.variaveis.map((v, i) => `
-        <div class="linha-item">
-          <div class="info-area"><span class="desc-txt">${v.descricao}</span><span class="valor-txt">${formatar(v.valor)}</span><span>${v.meio === 'credito'?'💳':v.meio === 'extra'?'✨':'💰'}</span></div>
-          <button onclick="removerItem('variaveis', ${i})" class="btn-del">×</button>
-        </div>`).join('');
+        <div class="linha-item"><div class="info-area"><span class="desc-txt">${v.descricao}</span><span class="valor-txt">${formatar(v.valor)}</span><span>${v.meio === 'credito'?'💳':v.meio === 'extra'?'✨':'💰'}</span></div>
+        <button onclick="removerItem('variaveis', ${i})" class="btn-del">×</button></div>`).join('');
 
       document.getElementById("lista-antecipacoes").innerHTML = (info.pagamentosFatura || []).map((p, i) => `
-        <div class="linha-item">
-          <div class="info-area"><span class="desc-txt">Antecipação ${p.data.split('-')[2]}</span><span class="valor-txt" style="color:var(--green)">${formatar(p.valor)}</span></div>
-          <button onclick="removerPagamentoFatura(${i})" class="btn-del">×</button>
-        </div>`).join('');
+        <div class="linha-item"><div class="info-area"><span class="desc-txt">Antecipação ${p.data.split('-')[2]}</span><span class="valor-txt" style="color:var(--green)">${formatar(p.valor)}</span></div>
+        <button onclick="removerPagamentoFatura(${i})" class="btn-del">×</button></div>`).join('');
 
       atualizarResumo();
     }
 
-    // Modal e Pagamentos
+    function atualizarResumo() {
+      const mes = document.getElementById("mes_select").value;
+      const info = dados[mes];
+      let bruta=0, vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0, pFat=0;
+
+      info.receitas.forEach(r => { 
+        const v = parseFloat(r.valor || 0); bruta += v;
+        const n = r.desc.toLowerCase();
+        if(n.includes("adiant")) vAdiant += v; else if(n.includes("salari")) vSal += v; else vExtra += v;
+      });
+
+      [...info.fixas, ...info.variaveis].forEach(item => {
+        const v = parseFloat(item.valor || 0);
+        if(item.meio==='credito') gCartao += v;
+        else if(item.meio==='extra') pExtra += v;
+        else if(item.paga || item.meio==='debito') {
+          const dia = parseInt(item.data?.split('-')[2] || 10);
+          if(dia <= 15) pAdiant += v; else pSal += v;
+        }
+      });
+
+      (info.pagamentosFatura||[]).forEach(p => { 
+        const v = parseFloat(p.valor || 0); pFat += v; 
+        if(parseInt(p.data.split('-')[2]) <= 15) pAdiant += v; else pSal += v;
+      });
+
+      document.getElementById("res-bruta").innerText = formatar(bruta);
+      document.getElementById("res-extra").innerText = formatar(vExtra - pExtra);
+      document.getElementById("res-adiant").innerText = formatar(vAdiant - pAdiant);
+      document.getElementById("res-salario").innerText = formatar(vSal - pSal);
+      const gastoReal = gCartao - pFat;
+      document.getElementById("res-fatura").innerText = formatar(dados.config.limiteCartao - gastoReal);
+      document.getElementById("res-gasto-cartao").innerText = `Gasto: ${formatar(gastoReal)}`;
+    }
+
+    function atualizarDashboard() {
+      const mes = document.getElementById("mes_select").value;
+      const info = dados[mes];
+      let tDeb=0, tCred=0, tExt=0, tRec=0;
+      info.receitas.forEach(r => tRec += parseFloat(r.valor || 0));
+      [...info.fixas, ...info.variaveis].forEach(i => {
+        const v = parseFloat(i.valor || 0);
+        if(i.meio === 'credito') tCred += v; else if(i.meio === 'extra') tExt += v; else if(i.paga || i.meio === 'debito') tDeb += v;
+      });
+      const totalG = tDeb + tCred + tExt;
+      const calcP = (v) => totalG > 0 ? Math.round((v / totalG) * 100) : 0;
+      document.getElementById("bar-debito").style.width = calcP(tDeb) + "%";
+      document.getElementById("pct-debito").innerText = calcP(tDeb) + "%";
+      document.getElementById("bar-credito").style.width = calcP(tCred) + "%";
+      document.getElementById("pct-credito").innerText = calcP(tCred) + "%";
+      document.getElementById("bar-extra").style.width = calcP(tExt) + "%";
+      document.getElementById("pct-extra").innerText = calcP(tExt) + "%";
+      const fb = document.getElementById("feedback-financeiro");
+      if(tCred > (tRec * 0.4)) fb.innerHTML = "⚠️ <strong>Atenção:</strong> Gastos no cartão acima de 40% da receita bruta.";
+      else if(tExt > tDeb) fb.innerHTML = "✨ <strong>Info:</strong> Rendas extras cobrindo a maioria das despesas.";
+      else fb.innerHTML = "✅ <strong>Saúde Financeira:</strong> Gastos equilibrados entre suas fontes.";
+    }
+
     function abrirModalPagamento(idx, isChecked) {
       const mes = document.getElementById("mes_select").value;
       if (!isChecked) { dados[mes].fixas[idx].paga = false; salvar(); renderizar(); return; }
@@ -269,22 +307,19 @@
       document.getElementById("modal-pagamento").style.display = "flex";
     }
 
-    function processarEscolhaFixa(meio) {
+    function processarEscolhaFixa(m) {
       const mes = document.getElementById("mes_select").value;
-      const item = dados[mes].fixas[itemSelecionadoIdx];
-      item.meio = meio; item.paga = true;
-      item.data = `${mes}-${String(new Date().getDate()).padStart(2,'0')}`;
+      const it = dados[mes].fixas[itemSelecionadoIdx];
+      it.meio = m; it.paga = true; it.data = `${mes}-${String(new Date().getDate()).padStart(2,'0')}`;
       fecharModal(); salvar(); renderizar();
     }
 
     function fecharModal() { document.getElementById("modal-pagamento").style.display = "none"; renderizar(); }
-    
-    // Adicionar Itens
-    function addReceita() { const n = prompt("Nome da Receita:"); if(n) { dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:0}); salvar(); renderizar(); }}
-    function addDespesaFixa() { const n = prompt("Nome da Conta:"); const v = prompt("Valor:"); if(n) { dados[document.getElementById("mes_select").value].fixas.push({categoria: n, valor: parseFloat(v.replace(',','.')) || 0, paga: false }); salvar(); renderizar(); } }
+    function addReceita() { const n = prompt("Nome:"); if(n) { dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:0}); salvar(); renderizar(); }}
+    function addDespesaFixa() { const n = prompt("Nome:"); const v = prompt("Valor:"); if(n) { dados[document.getElementById("mes_select").value].fixas.push({categoria: n, valor: parseFloat(v.replace(',','.')) || 0, paga: false }); salvar(); renderizar(); } }
     function addVariavel() {
       const mes = document.getElementById("mes_select").value, d = document.getElementById("var-data").value, desc = document.getElementById("var-desc").value, v = parseFloat(document.getElementById("var-valor").value), m = document.getElementById("var-meio").value;
-      if (!d || isNaN(v)) return alert("Preencha Data e Valor!");
+      if (!d || isNaN(v)) return alert("Preencha Data e Valor");
       dados[mes].variaveis.push({ data: d, descricao: desc||"Diversos", valor: v, meio: m });
       document.getElementById("var-desc").value = ""; document.getElementById("var-valor").value = ""; salvar(); renderizar();
     }
@@ -294,90 +329,23 @@
       if (!dados[mes].pagamentosFatura) dados[mes].pagamentosFatura = [];
       dados[mes].pagamentosFatura.push({ data: d, valor: v }); salvar(); renderizar();
     }
-
-    // Cálculos e Dashboard
-    function atualizarResumo() {
-      const mes = document.getElementById("mes_select").value;
-      const info = dados[mes];
-      let bruta=0, extra=0, adiant=0, sal=0, gCartao=0, pAdiant=0, pSal=0, pExtra=0, pFat=0;
-
-      info.receitas.forEach(r => { 
-        bruta += r.valor; const n = r.desc.toLowerCase();
-        if(n.includes("adiant")) adiant += r.valor; else if(n.includes("salari")) sal += r.valor; else extra += r.valor;
-      });
-
-      [...info.fixas, ...info.variaveis].forEach(item => {
-        if(item.meio==='credito') gCartao += item.valor;
-        else if(item.meio==='extra') pExtra += item.valor;
-        else if(item.paga || item.meio==='debito') {
-          const dia = parseInt(item.data?.split('-')[2] || 10);
-          if(dia <= 15) pAdiant += item.valor; else pSal += item.valor;
-        }
-      });
-
-      (info.pagamentosFatura||[]).forEach(p => { pFat += p.valor; if(parseInt(p.data.split('-')[2]) <= 15) pAdiant += p.valor; else pSal += p.valor; });
-
-      document.getElementById("res-bruta").innerText = formatar(bruta);
-      document.getElementById("res-extra").innerText = formatar(extra - pExtra);
-      document.getElementById("res-adiant").innerText = formatar(adiant - pAdiant);
-      document.getElementById("res-salario").innerText = formatar(sal - pSal);
-      document.getElementById("res-fatura").innerText = formatar(dados.config.limiteCartao - (gCartao - pFat));
-      document.getElementById("res-gasto-cartao").innerText = `Gasto: ${formatar(gCartao - pFat)}`;
-    }
-
-    function atualizarDashboard() {
-      const mes = document.getElementById("mes_select").value;
-      const info = dados[mes];
-      let tDeb=0, tCred=0, tExt=0, tRec=0;
-      
-      info.receitas.forEach(r => tRec += r.valor);
-      [...info.fixas, ...info.variaveis].forEach(i => {
-        if(i.meio === 'credito') tCred += i.valor;
-        else if(i.meio === 'extra') tExt += i.valor;
-        else if(i.paga || i.meio === 'debito') tDeb += i.valor;
-      });
-
-      const totalGeral = tDeb + tCred + tExt;
-      const calcPct = (v) => totalGeral > 0 ? Math.round((v / totalGeral) * 100) : 0;
-
-      document.getElementById("bar-debito").style.width = calcPct(tDeb) + "%";
-      document.getElementById("pct-debito").innerText = calcPct(tDeb) + "%";
-      
-      document.getElementById("bar-credito").style.width = calcPct(tCred) + "%";
-      document.getElementById("pct-credito").innerText = calcPct(tCred) + "%";
-      
-      document.getElementById("bar-extra").style.width = calcPct(tExt) + "%";
-      document.getElementById("pct-extra").innerText = calcPct(tExt) + "%";
-
-      const feedback = document.getElementById("feedback-financeiro");
-      if(tCred > (tRec * 0.5)) feedback.innerText = "⚠️ Cuidado! Seu gasto no cartão está acima de 50% da sua receita bruta. Tente antecipar pagamentos.";
-      else if(totalGeral > tRec) feedback.innerText = "🚨 Alerta: Suas despesas superaram suas receitas este mês!";
-      else feedback.innerText = "✅ Tudo certo! Suas finanças estão sob controle dentro da sua capacidade mensal.";
-    }
-
-    // Backup e Sistema
     function verificarBackup() {
-      const ultima = new Date(dados.config.ultimoBackup || 0);
-      const dias = (new Date() - ultima) / 86400000;
-      document.getElementById("alerta-backup").style.display = dias > 7 ? "block" : "none";
+      const u = new Date(dados.config.ultimoBackup || 0);
+      document.getElementById("alerta-backup").style.display = (new Date() - u) / 86400000 > 7 ? "block" : "none";
     }
-
     function exportarJSON() {
       dados.config.ultimoBackup = new Date().toISOString();
       const b = new Blob([JSON.stringify(dados)], {type:'application/json'});
-      const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`MS_Financas_Backup.json`; a.click();
+      const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`Backup_Financas.json`; a.click();
       salvar();
     }
-
     function importarJSON(e) {
       const r = new FileReader();
-      r.onload = (v) => { try { dados = JSON.parse(v.target.result); salvar(); renderizar(); } catch(e){ alert("Arquivo Inválido!"); } };
+      r.onload = (v) => { try { dados = JSON.parse(v.target.result); salvar(); renderizar(); } catch(e){ alert("Erro!"); } };
       r.readAsText(e.target.files[0]);
     }
-
-    function removerItem(t, i) { if(confirm("Deseja remover este item?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); renderizar(); } }
-    function removerPagamentoFatura(i) { if(confirm("Remover antecipação?")) { dados[document.getElementById("mes_select").value].pagamentosFatura.splice(i,1); salvar(); renderizar(); } }
-
+    function removerItem(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); renderizar(); } }
+    function removerPagamentoFatura(i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value].pagamentosFatura.splice(i,1); salvar(); renderizar(); } }
     function popularMeses() {
       const s = document.getElementById("mes_select"), ms = ["Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
       const atual = new Date().getMonth() + 1;
@@ -388,18 +356,8 @@
     }
 
     popularMeses(); renderizar(); verificarBackup();
-
-    // PWA Support
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('https://mfrsantos.github.io/Financas_Mobile/sw.js');
-      });
-    }
-    let defPrompt; 
-    window.addEventListener('beforeinstallprompt', e => { 
-      e.preventDefault(); defPrompt = e; 
-      document.getElementById('btn-instalar').style.display='block'; 
-    });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('https://mfrsantos.github.io/Financas_Mobile/sw.js');
+    let defPrompt; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); defPrompt = e; document.getElementById('btn-instalar').style.display='block'; });
     async function dispararInstalacao() { if(defPrompt) { defPrompt.prompt(); document.getElementById('btn-instalar').style.display='none'; } }
   </script>
 </body>
