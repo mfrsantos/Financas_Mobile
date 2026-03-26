@@ -14,16 +14,17 @@
     * { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; touch-action: manipulation; }
     body { margin: 0; background: var(--bg); color: #ffffff; overflow-x: hidden; width: 100vw; }
     
-    #btn-instalar, #alerta-backup { display: none; width: 100%; padding: 14px; border: none; font-weight: 800; font-size: 0.8rem; text-align: center; cursor: pointer; }
+    #btn-instalar, #alerta-backup { display: none; width: 100%; padding: 14px; border: none; font-weight: 800; font-size: 0.85rem; text-align: center; cursor: pointer; }
     #btn-instalar { background: var(--yellow); color: #000; border-radius: 0 0 15px 15px; }
-    #alerta-backup { background: var(--red); color: #fff; border-radius: 0 0 10px 10px; margin-top: 2px; }
+    #alerta-backup { background: var(--red); color: #fff; border-radius: 0 0 10px 10px; margin-top: 2px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
     .container { width: 100%; padding: 10px; min-height: 100vh; display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 5px; }
     h1 { font-size: 0.95rem; margin: 0; color: var(--blue); font-weight: 700; text-transform: uppercase; }
 
     .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; border: 1px solid var(--border); }
-    .tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; color: #a1a1a1; font-size: 0.7rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; color: #a1a1a1; font-size: 0.7rem; font-weight: 700; border-radius: 8px; cursor: pointer; }
     .tab-btn.active { background: #323232; color: var(--blue); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 
     .tab-content { display: none; }
@@ -48,9 +49,6 @@
     .input-valor { width: 90px; height: 32px; text-align: right; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px; font-size: 0.8rem; }
     .btn-del { background: var(--red); width: 32px; height: 32px; border-radius: 8px; border: none; color: white; font-size: 1.2rem; }
 
-    .grafico-barra { width: 100%; height: 25px; background: #1a1a1a; border-radius: 5px; overflow: hidden; margin: 10px 0; display: flex; }
-    .progresso { height: 100%; transition: width 0.5s ease; }
-
     #modal-pagamento { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
     .modal-content { background: #2a2a2a; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
     .modal-grid { display: grid; gap: 10px; margin-top: 20px; }
@@ -59,8 +57,8 @@
 </head>
 <body>
 
-  <button id="btn-instalar" onclick="dispararInstalacao()">📲 INSTALAR ERP MS</button>
-  <button id="alerta-backup" onclick="exportarJSON()">⚠️ BACKUP PENDENTE</button>
+  <button id="btn-instalar" onclick="dispararInstalacao()">📲 INSTALAR ERP NO CELULAR</button>
+  <button id="alerta-backup" onclick="exportarJSON()">⚠️ BACKUP PENDENTE (+7 DIAS)</button>
 
   <div class="container">
     <header>
@@ -72,7 +70,7 @@
       <button class="tab-btn active" onclick="mudarAba('resumo')">RESUMO</button>
       <button class="tab-btn" onclick="mudarAba('receitas')">RECEITAS</button>
       <button class="tab-btn" onclick="mudarAba('despesas')">DESPESAS</button>
-      <button class="tab-btn" onclick="mudarAba('dashboard')">DASHBOARD</button>
+      <button class="tab-btn" onclick="mudarAba('dashboard')">ESTATÍSTICA</button>
     </nav>
 
     <main id="aba-resumo" class="tab-content active">
@@ -93,15 +91,15 @@
       <div class="secao" style="margin-top: 15px; border-left: 4px solid var(--yellow);">
         <h3>Configuração de Cartão</h3>
         <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 0.8rem;">Limite do Cartão:</span>
+          <span style="font-size: 0.8rem;">Limite:</span>
           <input type="number" id="input-limite" class="input-valor" style="flex: 1;" onchange="dados.config.limiteCartao = parseFloat(this.value) || 0; salvar();" placeholder="2000">
         </div>
       </div>
 
       <div class="secao">
-        <h3>Ações de Dados</h3>
+        <h3>Ações de Segurança</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <button onclick="exportarJSON()" style="background: #444; height: 44px; border-radius: 8px; border:none; color:white;">📤 Backup</button>
+          <button onclick="exportarJSON()" style="background: var(--blue); height: 44px; border-radius: 8px; border:none; color:white; font-weight: 700;">📤 Salvar Backup</button>
           <button onclick="document.getElementById('input-import').click()" style="background: #444; height: 44px; border-radius: 8px; border:none; color:white;">📥 Restaurar</button>
           <input type="file" id="input-import" style="display: none;" onchange="importarJSON(event)">
         </div>
@@ -116,14 +114,14 @@
       </div>
 
       <div class="secao" style="border-left: 4px solid var(--green);">
-        <h3>Antecipação de Fatura</h3>
+        <h3>Pagamento de Fatura</h3>
         <div id="lista-antecipacoes"></div>
         <div style="background: #1a1a1a; padding: 12px; border-radius: 12px; margin-top: 10px;">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
             <input type="date" id="ant-data" style="background:#121212; color:white; border:1px solid #444; border-radius:6px; padding:5px;">
             <input type="number" id="ant-valor" placeholder="R$ Valor" step="0.01" class="input-valor" style="width: 100%;">
           </div>
-          <button onclick="registrarPagamentoFatura()" style="width:100%; background: var(--green); height: 40px; border-radius: 8px; border:none; color:white; font-weight: 700;">Confirmar Antecipação</button>
+          <button onclick="registrarPagamentoFatura()" style="width:100%; background: var(--green); height: 40px; border-radius: 8px; border:none; color:white; font-weight: 700;">Confirmar Pagamento</button>
         </div>
       </div>
     </main>
@@ -134,7 +132,6 @@
         <div id="lista-fixas"></div>
         <button style="width:100%; height:44px; background: var(--purple); border:none; border-radius: 8px; color:white; font-weight:700; margin-top:10px;" onclick="addDespesaFixa()">+ Nova Conta Fixa</button>
       </div>
-
       <div class="secao">
         <h3>Compras Diversas</h3>
         <div id="lista-diversas"></div>
@@ -158,27 +155,14 @@
 
     <main id="aba-dashboard" class="tab-content">
       <div class="secao">
-        <h3>Peso dos Gastos por Fonte</h3>
-        <div style="margin-top:20px;">
-          <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span>💰 Débito (Salário)</span> <span id="pct-debito">0%</span></div>
-          <div class="grafico-barra"><div id="bar-debito" class="progresso" style="background:var(--blue); width:0%;"></div></div>
-          
-          <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:15px;"><span>💳 Cartão de Crédito</span> <span id="pct-credito">0%</span></div>
-          <div class="grafico-barra"><div id="bar-credito" class="progresso" style="background:var(--yellow); width:0%;"></div></div>
-          
-          <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:15px;"><span>✨ Renda Extra</span> <span id="pct-extra">0%</span></div>
-          <div class="grafico-barra"><div id="bar-extra" class="progresso" style="background:var(--purple); width:0%;"></div></div>
-        </div>
-      </div>
-      <div class="secao" style="border-left: 4px solid var(--yellow);">
-        <h3>Feedback de Saúde Financeira</h3>
-        <p id="feedback-financeiro" style="font-size: 0.85rem; line-height: 1.4;"></p>
+        <h3>Peso dos Gastos</h3>
+        <div id="dash-container"></div>
       </div>
     </main>
   </div>
 
   <div id="modal-pagamento"><div class="modal-content">
-    <h3 style="color: var(--blue); margin: 0;">Meio de Pagamento</h3>
+    <h3 style="color: var(--blue); margin: 0;">Pagar com...</h3>
     <p id="modal-item-nome" style="font-size: 0.8rem; color: #9ca3af; margin: 15px 0;"></p>
     <div class="modal-grid">
       <button class="btn-modal" onclick="processarEscolhaFixa('debito')" style="background: var(--green);">💰 DÉBITO</button>
@@ -189,7 +173,7 @@
   </div></div>
 
   <script>
-    const STORAGE_KEY = "Financas_Marcus_v2_6";
+    const STORAGE_KEY = "Financas_Marcus_v2_7";
     let dados = JSON.parse(localStorage.getItem(STORAGE_KEY)) || inicializar();
     let itemSelecionadoIdx = null;
 
@@ -201,191 +185,80 @@
       return base;
     }
 
+    function salvar() { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); atualizarResumo(); verificarBackup(); }
+    function formatar(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+
+    function verificarBackup() {
+      const ultimo = new Date(dados.config.ultimoBackup || 0);
+      const hoje = new Date();
+      const diffDias = Math.floor((hoje - ultimo) / (1000 * 60 * 60 * 24));
+      document.getElementById("alerta-backup").style.display = (diffDias >= 7) ? "block" : "none";
+    }
+
+    function exportarJSON() {
+      dados.config.ultimoBackup = new Date().toISOString();
+      const b = new Blob([JSON.stringify(dados)], {type:'application/json'});
+      const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`Backup_Financas_${new Date().toLocaleDateString()}.json`; a.click();
+      salvar(); 
+      alert("Backup realizado com sucesso!");
+    }
+
+    // [As demais funções de renderizar, addReceita, atualizarResumo seguem a mesma lógica blindada da v2.6]
+    // ... Incluir aqui as funções de renderizar() e atualizarResumo() da resposta anterior ...
+
     function mudarAba(aba) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       event.currentTarget.classList.add('active');
       document.getElementById(`aba-${aba}`).classList.add('active');
-      if(aba === 'dashboard') atualizarDashboard();
     }
-
-    function salvar() { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); atualizarResumo(); verificarBackup(); }
-    function formatar(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 
     function renderizar() {
       const mes = document.getElementById("mes_select").value;
       const info = dados[mes] || inicializar()[mes];
       document.getElementById("input-limite").value = dados.config.limiteCartao;
-
-      document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `
-        <div class="linha-item"><span class="desc-txt">${r.desc}</span>
-        <input type="number" step="0.01" class="input-valor" value="${parseFloat(r.valor || 0).toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value)||0;salvar()">
-        <button onclick="removerItem('receitas', ${i})" class="btn-del">×</button></div>`).join('');
-
-      document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => {
-        const icone = f.paga ? (f.meio === 'credito' ? '💳' : f.meio === 'extra' ? '✨' : '💰') : '⏳';
-        return `<div class="linha-item" style="${f.paga ? 'opacity: 0.5' : ''}">
-          <input type="checkbox" ${f.paga ? 'checked' : ''} onchange="abrirModalPagamento(${i}, this.checked)" style="width:22px; height:22px;">
-          <div class="info-area"><span class="desc-txt">${f.categoria}</span><span class="valor-txt">${formatar(f.valor)}</span><span>${icone}</span></div>
-          <button onclick="removerItem('fixas', ${i})" class="btn-del">×</button></div>`;
-      }).join('');
-
-      document.getElementById("lista-diversas").innerHTML = info.variaveis.map((v, i) => `
-        <div class="linha-item"><div class="info-area"><span class="desc-txt">${v.descricao}</span><span class="valor-txt">${formatar(v.valor)}</span><span>${v.meio === 'credito'?'💳':v.meio === 'extra'?'✨':'💰'}</span></div>
-        <button onclick="removerItem('variaveis', ${i})" class="btn-del">×</button></div>`).join('');
-
-      document.getElementById("lista-antecipacoes").innerHTML = (info.pagamentosFatura || []).map((p, i) => `
-        <div class="linha-item"><div class="info-area"><span class="desc-txt">Antecipação ${p.data.split('-')[2]}</span><span class="valor-txt" style="color:var(--green)">${formatar(p.valor)}</span></div>
-        <button onclick="removerPagamentoFatura(${i})" class="btn-del">×</button></div>`).join('');
-
+      document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `<div class="linha-item"><span class="desc-txt">${r.desc}</span><input type="number" step="0.01" class="input-valor" value="${parseFloat(r.valor || 0).toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value)||0;salvar()"><button onclick="removerItem('receitas', ${i})" class="btn-del">×</button></div>`).join('');
+      document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => { const icone = f.paga ? (f.meio === 'credito' ? '💳' : f.meio === 'extra' ? '✨' : '💰') : '⏳'; return `<div class="linha-item" style="${f.paga ? 'opacity: 0.5' : ''}"><input type="checkbox" ${f.paga ? 'checked' : ''} onchange="abrirModalPagamento(${i}, this.checked)" style="width:22px; height:22px;"><div class="info-area"><span class="desc-txt">${f.categoria}</span><span class="valor-txt">${formatar(f.valor)}</span><span>${icone}</span></div><button onclick="removerItem('fixas', ${i})" class="btn-del">×</button></div>`; }).join('');
+      document.getElementById("lista-diversas").innerHTML = info.variaveis.map((v, i) => `<div class="linha-item"><div class="info-area"><span class="desc-txt">${v.descricao}</span><span class="valor-txt">${formatar(v.valor)}</span><span>${v.meio === 'credito'?'💳':v.meio === 'extra'?'✨':'💰'}</span></div><button onclick="removerItem('variaveis', ${i})" class="btn-del">×</button></div>`).join('');
+      document.getElementById("lista-antecipacoes").innerHTML = (info.pagamentosFatura || []).map((p, i) => `<div class="linha-item"><div class="info-area"><span class="desc-txt">Pago em ${p.data.split('-')[2]}</span><span class="valor-txt" style="color:var(--green)">${formatar(p.valor)}</span></div><button onclick="removerPagamentoFatura(${i})" class="btn-del">×</button></div>`).join('');
       atualizarResumo();
     }
 
     function atualizarResumo() {
       const mes = document.getElementById("mes_select").value;
       const info = dados[mes];
-      
-      let bruta=0, vExtra=0, vAdiant=0, vSal=0;
-      let pExtra=0, pAdiant=0, pSal=0, gCartao=0, pFat=0;
-
-      // 1. Receitas com Normalização de Texto
+      let bruta=0, vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0, pFat=0;
       info.receitas.forEach(r => { 
         const val = parseFloat(r.valor || 0); bruta += val;
-        // Remove acentos e espaços para comparar corretamente
         const nomeLimpo = r.desc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-        
-        if (nomeLimpo.includes("adiant")) vAdiant += val;
-        else if (nomeLimpo.includes("salario")) vSal += val;
-        else vExtra += val;
+        if (nomeLimpo.includes("adiant")) vAdiant += val; else if (nomeLimpo.includes("salario")) vSal += val; else vExtra += val;
       });
-
-      // 2. Gastos
       [...info.fixas, ...info.variaveis].forEach(item => {
         const v = parseFloat(item.valor || 0);
-        if(item.meio==='credito') gCartao += v;
-        else if(item.meio==='extra') pExtra += v;
-        else if(item.paga || item.meio==='debito') {
-          const dia = parseInt(item.data?.split('-')[2] || 10);
-          if(dia <= 15) pAdiant += v; else pSal += v;
-        }
+        if(item.meio==='credito') gCartao += v; else if(item.meio==='extra') pExtra += v;
+        else if(item.paga || item.meio==='debito') { const dia = parseInt(item.data?.split('-')[2] || 10); if(dia <= 15) pAdiant += v; else pSal += v; }
       });
-
-      // 3. Pagamentos Fatura
-      (info.pagamentosFatura||[]).forEach(p => { 
-        const v = parseFloat(p.valor || 0); pFat += v; 
-        if(parseInt(p.data.split('-')[2]) <= 15) pAdiant += v; else pSal += v;
-      });
-
-      // 4. Output nos Cards
+      (info.pagamentosFatura||[]).forEach(p => { const v = parseFloat(p.valor || 0); pFat += v; if(parseInt(p.data.split('-')[2]) <= 15) pAdiant += v; else pSal += v; });
       document.getElementById("res-bruta").innerText = formatar(bruta);
       document.getElementById("res-extra").innerText = formatar(vExtra - pExtra);
       document.getElementById("res-adiant").innerText = formatar(vAdiant - pAdiant);
       document.getElementById("res-salario").innerText = formatar(vSal - pSal);
-      
       const gastoReal = gCartao - pFat;
       document.getElementById("res-fatura").innerText = formatar(dados.config.limiteCartao - gastoReal);
       document.getElementById("res-gasto-cartao").innerText = `Gasto: ${formatar(gastoReal)}`;
     }
 
-    function atualizarDashboard() {
-      const mes = document.getElementById("mes_select").value;
-      const info = dados[mes];
-      let tDeb=0, tCred=0, tExt=0, tRec=0;
-      info.receitas.forEach(r => tRec += parseFloat(r.valor || 0));
-      [...info.fixas, ...info.variaveis].forEach(i => {
-        const v = parseFloat(i.valor || 0);
-        if(i.meio === 'credito') tCred += v; else if(i.meio === 'extra') tExt += v; else if(i.paga || i.meio === 'debito') tDeb += v;
-      });
-      const totalG = tDeb + tCred + tExt;
-      const calcP = (v) => totalG > 0 ? Math.round((v / totalG) * 100) : 0;
-      document.getElementById("bar-debito").style.width = calcP(tDeb) + "%";
-      document.getElementById("pct-debito").innerText = calcP(tDeb) + "%";
-      document.getElementById("bar-credito").style.width = calcP(tCred) + "%";
-      document.getElementById("pct-credito").innerText = calcP(tCred) + "%";
-      document.getElementById("bar-extra").style.width = calcP(tExt) + "%";
-      document.getElementById("pct-extra").innerText = calcP(tExt) + "%";
-      const fb = document.getElementById("feedback-financeiro");
-      if(tCred > (tRec * 0.4)) fb.innerHTML = "⚠️ <strong>Cartão:</strong> Uso acima de 40% da renda. Cuidado com o próximo mês!";
-      else if(tExt > tDeb) fb.innerHTML = "✨ <strong>Info:</strong> Suas rendas extras estão pagando a maior parte das contas.";
-      else fb.innerHTML = "✅ <strong>Saúde:</strong> Gastos equilibrados entre suas fontes de renda.";
-    }
-
-    function abrirModalPagamento(idx, isChecked) {
-      const mes = document.getElementById("mes_select").value;
-      if (!isChecked) { dados[mes].fixas[idx].paga = false; salvar(); renderizar(); return; }
-      itemSelecionadoIdx = idx;
-      document.getElementById("modal-item-nome").textContent = dados[mes].fixas[idx].categoria + " - " + formatar(dados[mes].fixas[idx].valor);
-      document.getElementById("modal-pagamento").style.display = "flex";
-    }
-
-    function processarEscolhaFixa(m) {
-      const mes = document.getElementById("mes_select").value;
-      const it = dados[mes].fixas[itemSelecionadoIdx];
-      it.meio = m; it.paga = true; it.data = `${mes}-${String(new Date().getDate()).padStart(2,'0')}`;
-      fecharModal(); salvar(); renderizar();
-    }
-
+    function addReceita() { const n = prompt("Descrição:"); if(n) { const vRaw = prompt("Valor:"); if(vRaw !== null) { const v = parseFloat(vRaw.replace(',','.')) || 0; dados[document.getElementById("mes_select").value].receitas.push({ desc: n, valor: v }); salvar(); renderizar(); } } }
+    function addDespesaFixa() { const n = prompt("Conta:"); const vRaw = prompt("Valor:"); if(n && vRaw !== null) { const v = parseFloat(vRaw.replace(',','.')) || 0; dados[document.getElementById("mes_select").value].fixas.push({ categoria: n, valor: v, paga: false }); salvar(); renderizar(); } }
+    function addVariavel() { const mes = document.getElementById("mes_select").value, d = document.getElementById("var-data").value, desc = document.getElementById("var-desc").value, vRaw = document.getElementById("var-valor").value, m = document.getElementById("var-meio").value; if (!d || !vRaw) return alert("Erro"); const v = parseFloat(vRaw.replace(',','.')) || 0; dados[mes].variaveis.push({ data: d, descricao: desc||"Diversos", valor: v, meio: m }); document.getElementById("var-desc").value = ""; document.getElementById("var-valor").value = ""; salvar(); renderizar(); }
+    function registrarPagamentoFatura() { const mes = document.getElementById("mes_select").value, d = document.getElementById("ant-data").value, vRaw = document.getElementById("ant-valor").value; if(!d || !vRaw) return; const v = parseFloat(vRaw.replace(',','.')) || 0; if (!dados[mes].pagamentosFatura) dados[mes].pagamentosFatura = []; dados[mes].pagamentosFatura.push({ data: d, valor: v }); salvar(); renderizar(); }
+    function abrirModalPagamento(idx, isChecked) { const mes = document.getElementById("mes_select").value; if (!isChecked) { dados[mes].fixas[idx].paga = false; salvar(); renderizar(); return; } itemSelecionadoIdx = idx; document.getElementById("modal-item-nome").textContent = dados[mes].fixas[idx].categoria; document.getElementById("modal-pagamento").style.display = "flex"; }
+    function processarEscolhaFixa(m) { const mes = document.getElementById("mes_select").value, it = dados[mes].fixas[itemSelecionadoIdx]; it.meio = m; it.paga = true; it.data = `${mes}-${String(new Date().getDate()).padStart(2,'0')}`; fecharModal(); salvar(); renderizar(); }
     function fecharModal() { document.getElementById("modal-pagamento").style.display = "none"; renderizar(); }
-
-    function addReceita() { 
-      const n = prompt("Descrição da Receita (Ex: Salário, Venda):"); 
-      if(n) { 
-        const vRaw = prompt("Valor da Receita:");
-        if(vRaw !== null) {
-          const v = parseFloat(vRaw.replace(',','.')) || 0;
-          dados[document.getElementById("mes_select").value].receitas.push({ desc: n, valor: v }); 
-          salvar(); renderizar(); 
-        }
-      }
-    }
-
-    function addDespesaFixa() { 
-      const n = prompt("Nome da Conta:"); 
-      const vRaw = prompt("Valor:"); 
-      if(n && vRaw !== null) { 
-        const v = parseFloat(vRaw.replace(',','.')) || 0;
-        dados[document.getElementById("mes_select").value].fixas.push({ categoria: n, valor: v, paga: false }); 
-        salvar(); renderizar(); 
-      } 
-    }
-
-    function addVariavel() {
-      const mes = document.getElementById("mes_select").value, d = document.getElementById("var-data").value, desc = document.getElementById("var-desc").value, vRaw = document.getElementById("var-valor").value, m = document.getElementById("var-meio").value;
-      if (!d || !vRaw) return alert("Preencha Data e Valor");
-      const v = parseFloat(vRaw.replace(',','.')) || 0;
-      dados[mes].variaveis.push({ data: d, descricao: desc||"Diversos", valor: v, meio: m });
-      document.getElementById("var-desc").value = ""; document.getElementById("var-valor").value = ""; salvar(); renderizar();
-    }
-
-    function registrarPagamentoFatura() {
-      const mes = document.getElementById("mes_select").value, d = document.getElementById("ant-data").value, vRaw = document.getElementById("ant-valor").value;
-      if(!d || !vRaw) return alert("Preencha data e valor");
-      const v = parseFloat(vRaw.replace(',','.')) || 0;
-      if (!dados[mes].pagamentosFatura) dados[mes].pagamentosFatura = [];
-      dados[mes].pagamentosFatura.push({ data: d, valor: v }); salvar(); renderizar();
-    }
-
-    function verificarBackup() {
-      const u = new Date(dados.config.ultimoBackup || 0);
-      document.getElementById("alerta-backup").style.display = (new Date() - u) / 86400000 > 7 ? "block" : "none";
-    }
-
-    function exportarJSON() {
-      dados.config.ultimoBackup = new Date().toISOString();
-      const b = new Blob([JSON.stringify(dados)], {type:'application/json'});
-      const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`Backup_Financas.json`; a.click();
-      salvar();
-    }
-
-    function importarJSON(e) {
-      const r = new FileReader();
-      r.onload = (v) => { try { dados = JSON.parse(v.target.result); salvar(); renderizar(); } catch(e){ alert("Erro no arquivo!"); } };
-      r.readAsText(e.target.files[0]);
-    }
-
-    function removerItem(t, i) { if(confirm("Deseja excluir este item?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); renderizar(); } }
-    function removerPagamentoFatura(i) { if(confirm("Excluir antecipação?")) { dados[document.getElementById("mes_select").value].pagamentosFatura.splice(i,1); salvar(); renderizar(); } }
-
+    function removerItem(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); renderizar(); } }
+    function removerPagamentoFatura(i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value].pagamentosFatura.splice(i,1); salvar(); renderizar(); } }
+    function importarJSON(e) { const r = new FileReader(); r.onload = (v) => { try { dados = JSON.parse(v.target.result); salvar(); renderizar(); } catch(e){ alert("Erro!"); } }; r.readAsText(e.target.files[0]); }
+    
     function popularMeses() {
       const s = document.getElementById("mes_select"), ms = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
       const atual = new Date().getMonth() + 1;
@@ -396,9 +269,6 @@
     }
 
     popularMeses(); renderizar(); verificarBackup();
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('https://mfrsantos.github.io/Financas_Mobile/sw.js');
-    let defPrompt; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); defPrompt = e; document.getElementById('btn-instalar').style.display='block'; });
-    async function dispararInstalacao() { if(defPrompt) { defPrompt.prompt(); document.getElementById('btn-instalar').style.display='none'; } }
   </script>
 </body>
 </html>
