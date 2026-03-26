@@ -1,5 +1,5 @@
 // ERP Finanças MS Informática - Service Worker
-// Versão: 3.1 (Atualizado para Novo Repositório - Março/2026)
+// Versão: 2.7 (Atualizado para Novo Repositório - Março/2026)
 // Suporte para: Abas, Dashboard e PWA no GitHub Pages
 
 const CACHE_NAME = 'erp-ms-financas-v2.1.0';
