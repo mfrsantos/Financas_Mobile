@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ERP Finanças MS Informática</title>
+  <link rel="manifest" href="manifest.json">
+  
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; touch-action: manipulation; }
+    body { margin: 0; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0; background: #121212; color: #e0e0e0; overflow-x: hidden; width: 100vw; }
+    
+    #btn-instalar, #alerta-backup {
+      display: none; width: 100%; padding: 12px; border: none; font-weight: 800; font-size: 0.8rem; 
+      text-align: center; cursor: pointer; animation: slideDown 0.5s ease-out;
+    }
+    #btn-instalar { background: #f59e0b; color: #000; border-radius: 0 0 15px 15px; margin-bottom: 5px; }
+    #alerta-backup { background: #ef4444; color: #fff; margin-bottom: 10px; border-radius: 0 0 10px 10px; }
+
+    @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+    .container { width: 100%; max-width: 100vw; margin: 0 auto; padding: 10px; background: #1e1e1e; min-height: 100vh; overflow-x: hidden; }
+    
+    header { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 1rem; margin: 0; color: #3b82f6; letter-spacing: 0.5px; }
+    .header-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    button, input, select { min-height: 44px; padding: 8px; border-radius: 10px; border: 1px solid #444; background: #333; color: #fff; font-size: 0.85rem; width: 100%; }
+    button { background: #3b82f6; font-weight: 600; border: none; cursor: pointer; }
+
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .card { padding: 12px; border-radius: 12px; background: #2a2a2a; border-left: 4px solid #3b82f6; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
+    .card h2 { margin: 0 0 4px; font-size: 0.55rem; color: #9ca3af; text-transform: uppercase; }
+    .card p { margin: 0; font-size: 0.85rem; font-weight: 800; }
+    
+    .secao { background: #242424; padding: 12px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; }
+    .secao h3 { margin: 0 0 12px 0; font-size: 0.85rem; color: #3b82f6; text-transform: uppercase; }
+
+    /* AJUSTE DINÂMICO PARA O REALME C75 */
+    .linha-item { 
+      display: flex; 
+      align-items: center; 
+      padding: 10px 0; 
+      border-bottom: 1px solid #333; 
+      gap: 8px; 
+      width: 100%;
+      overflow: hidden;
+    }
+    .check-area { width: 22px; flex-shrink: 0; }
+    .info-area { 
+      display: flex; 
+      flex: 1; 
+      align-items: center; 
+      justify-content: space-between; 
+      min-width: 0; 
+      gap: 5px; 
+    }
+    .desc-txt { 
+      font-size: 0.75rem; 
+      font-weight: 600; 
+      flex: 1; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+    .valor-txt { 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      color: #fff; 
+      text-align: right;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* Input de valor dentro da lista de receitas */
+    .input-valor-lista {
+      width: 80px !important; 
+      min-height: 30px !important; 
+      height: 30px !important;
+      padding: 2px 5px !important;
+      text-align: right;
+      background: #1a1a1a !important;
+      font-size: 0.75rem !important;
+      flex-shrink: 0;
+    }
+    .data-txt { font-size: 0.6rem; color: #9ca3af; width: 25px; text-align: center; flex-shrink: 0; }
+    .meio-txt { font-size: 0.8rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .btn-remover { background: #ef4444; width: 28px; height: 28px; border-radius: 8px; color: white; border:none; flex-shrink: 0; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    
+    #modal-pagamento { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; padding: 20px; }
+    .modal-content { background: #2a2a2a; padding: 20px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; }
+    .modal-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+
+  <button id="btn-instalar" onclick="dispararInstalacaoCustomizada()">📲 ADICIONAR ERP MS À TELA INICIAL</button>
+  <button id="alerta-backup" onclick="exportarJSON()">⚠️ BACKUP PENDENTE - CLIQUE PARA SALVAR</button>
+
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <h1>📊 ERP Finanças MS</h1>
+        <select id="mes_select" onchange="renderizar();" style="width: auto; min-height: 35px;"></select>
+      </div>
+      <div class="header-actions">
+        <button onclick="exportarJSON()" style="background: #444;">📤 BACKUP</button>
+        <button onclick="document.getElementById('input-import').click()" style="background: #444;">📥 RESTAURAR</button>
+        <input type="file" id="input-import" style="display: none;" onchange="importarJSON(event)">
+      </div>
+    </header>
+
+    <section class="cards">
+      <div class="card" style="border-left-color: #facc15;"><h2>Bruta</h2><p id="res-bruta">R$ 0</p></div>
+      <div class="card" style="border-left-color: #a855f7;"><h2>Extra</h2><p id="res-extra">R$ 0</p></div>
+      <div class="card" style="border-left-color: #3b82f6;"><h2>Adiant.</h2><p id="res-adiant">R$ 0</p></div>
+      <div class="card" style="border-left-color: #10b981;"><h2>Salário</h2><p id="res-salario">R$ 0</p></div>
+      <div class="card" style="border-left-color: #f59e0b; grid-column: span 2; min-height: 60px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="margin:0;">Cartão</h2>
+          <p id="res-gasto-cartao" class="sub-info" style="margin:0; font-size: 0.6rem !important;">Gasto: R$ 0</p>
+        </div>
+        <p id="res-fatura" style="font-size: 1rem;">R$ 0,00</p>
+      </div>
+    </section>
+
+    <div class="secao">
+      <h3>💵 Receitas</h3>
+      <div id="lista-receitas"></div>
+      <button style="width:100%; margin-top:10px;" onclick="addReceita()">+ Nova Receita</button>
+    </div>
+
+    <div class="secao" style="border-color: #10b981;">
+      <h3>💳 Antecipação Fatura</h3>
+      <div id="lista-antecipacoes"></div>
+      <div style="background: #1a1a1a; padding: 10px; border-radius: 10px; margin-top: 10px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 5px;">
+          <input type="date" id="ant-data">
+          <input type="number" id="ant-valor" placeholder="R$" step="0.01" inputmode="decimal">
+        </div>
+        <button onclick="registrarPagamentoFatura()" style="width: 100%; background: #10b981; min-height: 35px;">Confirmar</button>
+      </div>
+    </div>
+
+    <div class="secao">
+      <h3>📋 Contas Fixas</h3>
+      <div id="lista-fixas"></div>
+      <button style="width:100%; margin-top:10px; background: #8b5cf6;" onclick="addDespesaFixa()">+ Fixa</button>
+    </div>
+
+    <div class="secao">
+      <h3>🛒 Diversas</h3>
+      <div id="lista-diversas"></div>
+      <div style="background: #1a1a1a; padding: 10px; border-radius: 10px; margin-top: 15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 5px;">
+          <input type="date" id="var-data">
+          <input type="number" id="var-valor" placeholder="R$" step="0.01" inputmode="decimal">
+        </div>
+        <input type="text" id="var-desc" placeholder="Descrição" style="margin-bottom: 5px;">
+        <div style="display: flex; gap: 5px;">
+          <select id="var-meio" style="flex: 1.5;">
+            <option value="debito">💰 Débito</option>
+            <option value="credito">💳 Crédito</option>
+            <option value="extra">✨ Extra</option>
+          </select>
+          <button onclick="addVariavel()" style="flex: 1; background: #10b981;">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-pagamento">
+    <div class="modal-content">
+      <h3 style="color: #3b82f6; font-size: 1rem;">Pagar Conta</h3>
+      <p id="modal-item-nome" style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 15px;"></p>
+      <div class="modal-grid">
+        <button onclick="processarEscolhaFixa('debito')" style="background: #10b981;">💰 DÉBITO</button>
+        <button onclick="processarEscolhaFixa('credito')" style="background: #f59e0b;">💳 CRÉDITO</button>
+        <button onclick="processarEscolhaFixa('extra')" style="background: #a855f7;">✨ RENDA EXTRA</button>
+      </div>
+      <button onclick="fecharModal()" style="margin-top: 15px; background: transparent; color: #ef4444; border: 1px solid #ef4444; width: 100%; min-height: 35px;">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "Financas_Marcus_v1_9";
+    let dados = JSON.parse(localStorage.getItem(STORAGE_KEY)) || inicializar();
+    let itemSelecionadoIdx = null;
+
+    function inicializar() {
+      const base = { config: { limiteCartao: 0.00, ultimoBackup: new Date().toISOString() } };
+      for (let m = 3; m <= 12; m++) {
+        const id = `2026-${String(m).padStart(2, '0')}`;
+        base[id] = { receitas: [{desc: "Adiantamento", valor: 0.00}, {desc: "Salário", valor: 0.00}], fixas: [], variaveis: [], pagamentosFatura: [] };
+      }
+      return base;
+    }
+
+    function salvar() { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); atualizarResumo(); verificarBackup(); }
+    function formatarMoeda(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+
+    function renderizar() {
+      const mes = document.getElementById("mes_select").value;
+      const info = dados[mes] || inicializar()[mes];
+      
+      document.getElementById("lista-fixas").innerHTML = (info.fixas || []).map((f, i) => {
+        const dia = f.paga && f.data ? f.data.split('-')[2] : "--";
+        let icone = f.paga ? (f.meio === 'credito' ? '💳' : f.meio === 'extra' ? '✨' : '💰') : '⏳';
+        return `<div class="linha-item" style="${f.paga ? 'opacity: 0.6' : ''}"><div class="check-area"><input type="checkbox" ${f.paga ? 'checked' : ''} onchange="abrirModalPagamento(${i}, this.checked)"></div><div class="info-area"><span class="desc-txt">${f.categoria}</span><span class="valor-txt">${formatarMoeda(f.valor)}</span><span class="data-txt">${dia}</span><span class="meio-txt">${icone}</span></div><button onclick="removerItem('fixas', ${i})" class="btn-remover">×</button></div>`;
+      }).join('');
+
+      document.getElementById("lista-diversas").innerHTML = (info.variaveis || []).map((v, i) => {
+        let icone = v.meio === 'credito' ? '💳' : v.meio === 'extra' ? '✨' : '💰';
+        let cor = v.meio === 'credito' ? '#f59e0b' : v.meio === 'extra' ? '#a855f7' : '#10b981';
+        return `<div class="linha-item"><span class="desc-txt">${v.descricao}</span><span class="valor-txt" style="color:${cor};">${formatarMoeda(v.valor)}</span><span class="data-txt">${v.data.split('-')[2]}</span><span class="meio-txt">${icone}</span><button onclick="removerItem('variaveis', ${i})" class="btn-remover">×</button></div>`;
+      }).join('');
+
+      renderListaReceitas(info, mes);
+      renderListaAntecipacoes(info);
+      atualizarResumo();
+    }
+
+    function renderListaReceitas(info, mes) {
+      document.getElementById("lista-receitas").innerHTML = (info.receitas || []).map((r, i) => `
+        <div class="linha-item">
+          <span class="desc-txt" style="font-weight:700;">${r.desc}</span>
+          <input type="number" step="0.01" class="input-valor-lista" value="${(r.valor || 0).toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value)||0;salvar()">
+          <button onclick="removerItem('receitas', ${i})" class="btn-remover">×</button>
+        </div>`).join('');
+    }
+
+    function renderListaAntecipacoes(info) {
+      document.getElementById("lista-antecipacoes").innerHTML = (info.pagamentosFatura || []).map((p, i) => `
+        <div class="linha-item"><span class="desc-txt">Antecipação</span><span class="valor-txt" style="color:#10b981;">${formatarMoeda(p.valor)}</span><span class="data-txt">${p.data.split('-')[2]}</span><button onclick="removerPagamentoFatura(${i})" class="btn-remover">×</button></div>`).join('');
+    }
+
+    function abrirModalPagamento(idx, isChecked) {
+      const mes = document.getElementById("mes_select").value;
+      if (!isChecked) { dados[mes].fixas[idx].paga = false; dados[mes].fixas[idx].meio = ""; salvar(); renderizar(); return; }
+      itemSelecionadoIdx = idx;
+      document.getElementById("modal-item-nome").textContent = dados[mes].fixas[idx].categoria + " - " + formatarMoeda(dados[mes].fixas[idx].valor);
+      document.getElementById("modal-pagamento").style.display = "flex";
+    }
+
+    function processarEscolhaFixa(meio) {
+      const mes = document.getElementById("mes_select").value;
+      const item = dados[mes].fixas[itemSelecionadoIdx];
+      item.meio = meio; item.paga = true;
+      const diaInput = prompt("Dia do pagamento:", new Date().getDate());
+      item.data = `${mes}-${String(diaInput||new Date().getDate()).padStart(2,'0')}`;
+      fecharModal(); salvar(); renderizar();
+    }
+
+    function fecharModal() { document.getElementById("modal-pagamento").style.display = "none"; renderizar(); }
+    function addReceita() { const n = prompt("Nome:"); if(n) { dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:0.00}); salvar(); renderizar(); }}
+    function addDespesaFixa() { const n = prompt("Nome:"); const v = prompt("Valor:"); if(n) { dados[document.getElementById("mes_select").value].fixas.push({categoria: n, valor: parseFloat(v?.replace(',','.')) || 0.00, paga: false }); salvar(); renderizar(); } }
+    function addVariavel() {
+      const mes = document.getElementById("mes_select").value, d = document.getElementById("var-data").value, desc = document.getElementById("var-desc").value, v = parseFloat(document.getElementById("var-valor").value), m = document.getElementById("var-meio").value;
+      if (!d || isNaN(v)) return alert("Data e Valor obrigatórios.");
+      dados[mes].variaveis.push({ data: d, descricao: desc||"Diversos", valor: v, meio: m });
+      document.getElementById("var-desc").value = ""; document.getElementById("var-valor").value = ""; salvar(); renderizar();
+    }
+    function registrarPagamentoFatura() {
+      const mes = document.getElementById("mes_select").value, d = document.getElementById("ant-data").value, v = parseFloat(document.getElementById("ant-valor").value);
+      if(!d || isNaN(v)) return;
+      if (!dados[mes].pagamentosFatura) dados[mes].pagamentosFatura = [];
+      dados[mes].pagamentosFatura.push({ data: d, valor: v }); salvar(); renderizar();
+    }
+    function verificarBackup() {
+        const ultimaData = new Date(dados.config.ultimoBackup || 0);
+        const dias = (new Date() - ultimaData) / (1000 * 60 * 60 * 24);
+        document.getElementById("alerta-backup").style.display = dias > 7 ? "block" : "none";
+    }
+    function exportarJSON() { 
+        dados.config.ultimoBackup = new Date().toISOString();
+        const b = new Blob([JSON.stringify(dados)], {type:'application/json'}); 
+        const a = document.createElement('a'); a.href=URL.createObjectURL(b); 
+        a.download=`ERP_MS_Financas_Backup.json`; a.click(); salvar();
+    }
+    function importarJSON(e) { const r = new FileReader(); r.onload = (v) => { try { dados = JSON.parse(v.target.result); salvar(); renderizar(); } catch(err) { alert("Erro no arquivo!"); } }; r.readAsText(e.target.files[0]); }
+    function removerItem(t, i) { if(confirm("Remover?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); renderizar(); } }
+    function removerPagamentoFatura(idx) { if(confirm("Remover?")) { dados[document.getElementById("mes_select").value].pagamentosFatura.splice(idx, 1); salvar(); renderizar(); } }
+    
+    function popularMeses() {
+      const sel = document.getElementById("mes_select"), ms = ["Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+      const mesAtual = new Date().getMonth() + 1;
+      ms.forEach((m, i) => {
+        let o = document.createElement("option"); o.value = `2026-${String(i+3).padStart(2,'0')}`; o.textContent = m;
+        if(i+3 === mesAtual) o.selected = true; sel.appendChild(o);
+      });
+    }
+
+    function atualizarResumo() {
+      const mes = document.getElementById("mes_select").value;
+      const info = dados[mes];
+      let bruta = 0.0, vExtraTotal = 0.0, vAdiant = 0.0, vSal = 0.0, faturaGasta = 0.0, pAdiant = 0.0, pSal = 0.0, pExtra = 0.0, totalPagoFatura = 0.0;
+      info.receitas.forEach(r => { 
+        let val = parseFloat(r.valor || 0); bruta += val; const nome = r.desc.toLowerCase();
+        if (nome.includes("adiant")) vAdiant += val; else if (nome.includes("salari")) vSal += val; else vExtraTotal += val; 
+      });
+      [...info.fixas, ...info.variaveis].forEach(item => {
+        const val = parseFloat(item.valor || 0);
+        if (item.meio === 'credito') faturaGasta += val; 
+        else if (item.meio === 'extra') pExtra += val;
+        else if (item.paga || item.meio === 'debito') {
+          const dia = parseInt(item.data?.split('-')[2] || 10);
+          if (dia <= 15) pAdiant += val; else pSal += val;
+        }
+      });
+      (info.pagamentosFatura || []).forEach(p => { 
+        const val = parseFloat(p.valor || 0); totalPagoFatura += val; 
+        if (parseInt(p.data.split('-')[2]) <= 15) pAdiant += val; else pSal += val; 
+      });
+      document.getElementById("res-bruta").textContent = formatarMoeda(bruta);
+      document.getElementById("res-extra").textContent = formatarMoeda(vExtraTotal - pExtra);
+      document.getElementById("res-adiant").textContent = formatarMoeda(vAdiant - pAdiant);
+      document.getElementById("res-salario").textContent = formatarMoeda(vSal - pSal);
+      const sFaturaDisp = parseFloat(dados.config?.limiteCartao || 0) - (faturaGasta - totalPagoFatura);
+      document.getElementById("res-fatura").textContent = formatarMoeda(sFaturaDisp);
+      document.getElementById("res-gasto-cartao").textContent = `Gasto: ${formatarMoeda(faturaGasta - totalPagoFatura)}`;
+    }
+
+    popularMeses(); renderizar(); verificarBackup();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => console.log('MS ERP: Ativo')).catch(err => console.error(err));
+      });
+    }
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault(); deferredPrompt = e;
+      document.getElementById('btn-instalar').style.display = 'block';
+    });
+    async function dispararInstalacaoCustomizada() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') document.getElementById('btn-instalar').style.display = 'none';
+        deferredPrompt = null;
+      }
+    }
+  </script>
+</body>
+</html>
