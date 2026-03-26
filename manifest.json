@@ -1,33 +1,33 @@
 {
   "name": "ERP Finanças MS Informática",
-  "short_name": "ERP Finanças",
+  "short_name": "MS Finanças",
   "description": "Sistema Profissional de Gestão Financeira - MS Informática",
-  "start_url": "https://mfrsantos.github.io/Financas_Mobile/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#121212",
+  "background_color": "#1c1c1c",
   "theme_color": "#0078d4",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
