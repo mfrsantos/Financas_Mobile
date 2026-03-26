@@ -45,7 +45,7 @@
     .desc-txt { font-size: 0.8rem; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .valor-txt { font-size: 0.8rem; font-weight: 700; flex-shrink: 0; margin-right: 5px; }
     
-    .input-valor { width: 85px; height: 32px; text-align: right; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px; font-size: 0.8rem; }
+    .input-valor { width: 90px; height: 32px; text-align: right; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px; font-size: 0.8rem; }
     .btn-del { background: var(--red); width: 32px; height: 32px; border-radius: 8px; border: none; color: white; font-size: 1.2rem; }
 
     .grafico-barra { width: 100%; height: 25px; background: #1a1a1a; border-radius: 5px; overflow: hidden; margin: 10px 0; display: flex; }
@@ -189,13 +189,13 @@
   </div></div>
 
   <script>
-    const STORAGE_KEY = "Financas_Marcus_v1_9";
+    const STORAGE_KEY = "Financas_Marcus_v2_6";
     let dados = JSON.parse(localStorage.getItem(STORAGE_KEY)) || inicializar();
     let itemSelecionadoIdx = null;
 
     function inicializar() {
       const base = { config: { limiteCartao: 2000.00, ultimoBackup: new Date().toISOString() } };
-      for (let m = 3; m <= 12; m++) {
+      for (let m = 1; m <= 12; m++) {
         base[`2026-${String(m).padStart(2, '0')}`] = { receitas: [{desc: "Adiantamento", valor: 0.00}, {desc: "Salário", valor: 0.00}], fixas: [], variaveis: [], pagamentosFatura: [] };
       }
       return base;
@@ -244,14 +244,22 @@
     function atualizarResumo() {
       const mes = document.getElementById("mes_select").value;
       const info = dados[mes];
-      let bruta=0, vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0, pFat=0;
+      
+      let bruta=0, vExtra=0, vAdiant=0, vSal=0;
+      let pExtra=0, pAdiant=0, pSal=0, gCartao=0, pFat=0;
 
+      // 1. Receitas com Normalização de Texto
       info.receitas.forEach(r => { 
-        const v = parseFloat(r.valor || 0); bruta += v;
-        const n = r.desc.toLowerCase();
-        if(n.includes("adiant")) vAdiant += v; else if(n.includes("salari")) vSal += v; else vExtra += v;
+        const val = parseFloat(r.valor || 0); bruta += val;
+        // Remove acentos e espaços para comparar corretamente
+        const nomeLimpo = r.desc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        
+        if (nomeLimpo.includes("adiant")) vAdiant += val;
+        else if (nomeLimpo.includes("salario")) vSal += val;
+        else vExtra += val;
       });
 
+      // 2. Gastos
       [...info.fixas, ...info.variaveis].forEach(item => {
         const v = parseFloat(item.valor || 0);
         if(item.meio==='credito') gCartao += v;
@@ -262,15 +270,18 @@
         }
       });
 
+      // 3. Pagamentos Fatura
       (info.pagamentosFatura||[]).forEach(p => { 
         const v = parseFloat(p.valor || 0); pFat += v; 
         if(parseInt(p.data.split('-')[2]) <= 15) pAdiant += v; else pSal += v;
       });
 
+      // 4. Output nos Cards
       document.getElementById("res-bruta").innerText = formatar(bruta);
       document.getElementById("res-extra").innerText = formatar(vExtra - pExtra);
       document.getElementById("res-adiant").innerText = formatar(vAdiant - pAdiant);
       document.getElementById("res-salario").innerText = formatar(vSal - pSal);
+      
       const gastoReal = gCartao - pFat;
       document.getElementById("res-fatura").innerText = formatar(dados.config.limiteCartao - gastoReal);
       document.getElementById("res-gasto-cartao").innerText = `Gasto: ${formatar(gastoReal)}`;
@@ -294,9 +305,9 @@
       document.getElementById("bar-extra").style.width = calcP(tExt) + "%";
       document.getElementById("pct-extra").innerText = calcP(tExt) + "%";
       const fb = document.getElementById("feedback-financeiro");
-      if(tCred > (tRec * 0.4)) fb.innerHTML = "⚠️ <strong>Atenção:</strong> Gastos no cartão acima de 40% da receita bruta.";
-      else if(tExt > tDeb) fb.innerHTML = "✨ <strong>Info:</strong> Rendas extras cobrindo a maioria das despesas.";
-      else fb.innerHTML = "✅ <strong>Saúde Financeira:</strong> Gastos equilibrados entre suas fontes.";
+      if(tCred > (tRec * 0.4)) fb.innerHTML = "⚠️ <strong>Cartão:</strong> Uso acima de 40% da renda. Cuidado com o próximo mês!";
+      else if(tExt > tDeb) fb.innerHTML = "✨ <strong>Info:</strong> Suas rendas extras estão pagando a maior parte das contas.";
+      else fb.innerHTML = "✅ <strong>Saúde:</strong> Gastos equilibrados entre suas fontes de renda.";
     }
 
     function abrirModalPagamento(idx, isChecked) {
@@ -317,14 +328,12 @@
     function fecharModal() { document.getElementById("modal-pagamento").style.display = "none"; renderizar(); }
 
     function addReceita() { 
-      const n = prompt("Descrição da Receita (Ex: Venda, Pix):"); 
+      const n = prompt("Descrição da Receita (Ex: Salário, Venda):"); 
       if(n) { 
-        const v = prompt("Valor da Receita:");
-        if(v) {
-          dados[document.getElementById("mes_select").value].receitas.push({
-            desc: n, 
-            valor: parseFloat(v.replace(',','.')) || 0.00
-          }); 
+        const vRaw = prompt("Valor da Receita:");
+        if(vRaw !== null) {
+          const v = parseFloat(vRaw.replace(',','.')) || 0;
+          dados[document.getElementById("mes_select").value].receitas.push({ desc: n, valor: v }); 
           salvar(); renderizar(); 
         }
       }
@@ -332,27 +341,26 @@
 
     function addDespesaFixa() { 
       const n = prompt("Nome da Conta:"); 
-      const v = prompt("Valor:"); 
-      if(n) { 
-        dados[document.getElementById("mes_select").value].fixas.push({
-          categoria: n, 
-          valor: parseFloat(v.replace(',','.')) || 0.00, 
-          paga: false 
-        }); 
+      const vRaw = prompt("Valor:"); 
+      if(n && vRaw !== null) { 
+        const v = parseFloat(vRaw.replace(',','.')) || 0;
+        dados[document.getElementById("mes_select").value].fixas.push({ categoria: n, valor: v, paga: false }); 
         salvar(); renderizar(); 
       } 
     }
 
     function addVariavel() {
-      const mes = document.getElementById("mes_select").value, d = document.getElementById("var-data").value, desc = document.getElementById("var-desc").value, v = parseFloat(document.getElementById("var-valor").value), m = document.getElementById("var-meio").value;
-      if (!d || isNaN(v)) return alert("Preencha Data e Valor");
+      const mes = document.getElementById("mes_select").value, d = document.getElementById("var-data").value, desc = document.getElementById("var-desc").value, vRaw = document.getElementById("var-valor").value, m = document.getElementById("var-meio").value;
+      if (!d || !vRaw) return alert("Preencha Data e Valor");
+      const v = parseFloat(vRaw.replace(',','.')) || 0;
       dados[mes].variaveis.push({ data: d, descricao: desc||"Diversos", valor: v, meio: m });
       document.getElementById("var-desc").value = ""; document.getElementById("var-valor").value = ""; salvar(); renderizar();
     }
 
     function registrarPagamentoFatura() {
-      const mes = document.getElementById("mes_select").value, d = document.getElementById("ant-data").value, v = parseFloat(document.getElementById("ant-valor").value);
-      if(!d || isNaN(v)) return;
+      const mes = document.getElementById("mes_select").value, d = document.getElementById("ant-data").value, vRaw = document.getElementById("ant-valor").value;
+      if(!d || !vRaw) return alert("Preencha data e valor");
+      const v = parseFloat(vRaw.replace(',','.')) || 0;
       if (!dados[mes].pagamentosFatura) dados[mes].pagamentosFatura = [];
       dados[mes].pagamentosFatura.push({ data: d, valor: v }); salvar(); renderizar();
     }
@@ -371,19 +379,19 @@
 
     function importarJSON(e) {
       const r = new FileReader();
-      r.onload = (v) => { try { dados = JSON.parse(v.target.result); salvar(); renderizar(); } catch(e){ alert("Erro!"); } };
+      r.onload = (v) => { try { dados = JSON.parse(v.target.result); salvar(); renderizar(); } catch(e){ alert("Erro no arquivo!"); } };
       r.readAsText(e.target.files[0]);
     }
 
-    function removerItem(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); renderizar(); } }
-    function removerPagamentoFatura(i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value].pagamentosFatura.splice(i,1); salvar(); renderizar(); } }
+    function removerItem(t, i) { if(confirm("Deseja excluir este item?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); renderizar(); } }
+    function removerPagamentoFatura(i) { if(confirm("Excluir antecipação?")) { dados[document.getElementById("mes_select").value].pagamentosFatura.splice(i,1); salvar(); renderizar(); } }
 
     function popularMeses() {
-      const s = document.getElementById("mes_select"), ms = ["Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+      const s = document.getElementById("mes_select"), ms = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
       const atual = new Date().getMonth() + 1;
       ms.forEach((m, i) => {
-        let o = document.createElement("option"); o.value = `2026-${String(i+3).padStart(2,'0')}`; o.textContent = m;
-        if(i+3 === atual) o.selected = true; s.appendChild(o);
+        let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
+        if(i+1 === atual) o.selected = true; s.appendChild(o);
       });
     }
 
