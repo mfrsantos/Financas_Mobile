@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.3.5 - Fluxo Temporal</title>
+  <title>MS Finanças v6.3.6 - Fluxo Corrigido</title>
   
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2c3e50">
@@ -65,7 +65,6 @@
       <button onclick="autenticar('reset')" style="background:none; border:none; color:#888; font-size:0.75rem; margin-top:10px; cursor:pointer; text-decoration:underline;">Esqueci minha senha</button>
       <p style="margin-top:20px; font-size:0.8rem; color:#888;">Novo usuário?</p>
       <button onclick="alternarAuth('cadastro')" style="background:none; border:none; color:var(--blue); font-weight:bold; cursor:pointer;">CRIAR CONTA</button>
-      <p id="msg-login" style="color:var(--red); font-size:0.8rem; margin-top:10px;"></p>
     </div>
 
     <div id="box-cadastro" style="background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--green); text-align: center; display:none;">
@@ -100,8 +99,8 @@
     <main id="aba-resumo" class="tab-content active">
       <div class="cards-grid">
         <div class="card"><h2>💎 Renda Extra</h2><p id="r-extra">R$ 0,00</p><div class="barra-bg"><div id="b-extra" class="barra-fill" style="background:var(--green)"></div></div></div>
-        <div class="card"><h2>📅 Adiantam.</h2><p id="r-adiant">R$ 0,00</p><div class="barra-bg"><div id="b-adiant" class="barra-fill" style="background:var(--blue)"></div></div></div>
-        <div class="card"><h2>💰 Salário</h2><p id="r-salario">R$ 0,00</p><div class="barra-bg"><div id="b-salario" class="barra-fill" style="background:var(--yellow)"></div></div></div>
+        <div class="card"><h2>💰 Salário (01-15)</h2><p id="r-salario">R$ 0,00</p><div class="barra-bg"><div id="b-salario" class="barra-fill" style="background:var(--blue)"></div></div></div>
+        <div class="card"><h2>📅 Adiantam. (16-31)</h2><p id="r-adiant">R$ 0,00</p><div class="barra-bg"><div id="b-adiant" class="barra-fill" style="background:var(--yellow)"></div></div></div>
         <div class="card"><h2>💳 Fat. Aberta</h2><p id="r-cartao">R$ 0,00</p><div class="barra-bg"><div id="b-cartao" class="barra-fill" style="background:var(--red)"></div></div></div>
       </div>
       <center><canvas id="meuGrafico" style="max-width:250px; margin-top:20px;"></canvas></center>
@@ -110,14 +109,13 @@
     <main id="aba-receitas" class="tab-content">
       <div class="secao">
         <h3>Recebimentos Fixos</h3>
-        <p style="font-size:0.7rem; color:#888;">Cadastre aqui seu Salário e Adiantamento.</p>
         <div id="l-receitas-fixas"></div>
-        <button onclick="abrirInput('receitas-fixas')" class="btn-action" style="background:var(--blue)">+ SALÁRIO/ADIANTAM.</button>
+        <button onclick="abrirInput('r_fixas')" class="btn-action" style="background:var(--blue)">+ SALÁRIO/ADIANTAM.</button>
       </div>
       <div class="secao">
         <h3>Rendas Extras</h3>
         <div id="l-receitas-extras"></div>
-        <button onclick="abrirInput('receitas-extras')" class="btn-action" style="background:var(--green)">+ RENDA EXTRA</button>
+        <button onclick="abrirInput('r_extras')" class="btn-action" style="background:var(--green)">+ RENDA EXTRA</button>
       </div>
     </main>
     
@@ -199,43 +197,44 @@
       if(!dados[mes]) dados[mes] = { r_fixas: [], r_extras: [], contas: [], pgs: [] };
       const d = dados[mes];
 
-      // 1. CALCULAR RECEITAS (BRUTAS)
-      let brutoAdiant = d.r_fixas.filter(r => r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
+      // 1. RECEBIMENTOS BRUTOS
       let brutoSalario = d.r_fixas.filter(r => !r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
+      let brutoAdiant = d.r_fixas.filter(r => r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
       let brutoExtra = d.r_extras.reduce((a,b)=>a+b.v,0);
 
-      // 2. CALCULAR DESCONTOS POR FONTE E DATA
-      let descAdiant = 0, descSalario = 0, descExtra = 0, faturaAberta = 0;
+      // 2. DESCONTOS (LÓGICA INVERTIDA)
+      let descSalario = 0, descAdiant = 0, descExtra = 0, faturaAberta = 0;
 
+      // Processar Contas
       d.contas.forEach(c => {
         if(c.fonte === 'debito') {
           let dia = parseInt(c.data.split('-')[2]);
-          if(dia <= 15) descAdiant += c.v;
-          else descSalario += c.v;
+          if(dia <= 15) descSalario += c.v; // 01 a 15 -> Salário
+          else descAdiant += c.v;           // 16 a 31 -> Adiantamento
         } 
         else if(c.fonte === 'extra') descExtra += c.v;
         else if(c.fonte === 'credito') faturaAberta += c.v;
       });
 
-      // Pagamentos de Fatura (Antecipação)
+      // Processar Pagamentos de Fatura (Débito ou Extra)
       d.pgs.forEach(p => {
         faturaAberta -= p.v;
         if(p.fonte === 'debito') {
           let dia = parseInt(p.data.split('-')[2]);
-          if(dia <= 15) descAdiant += p.v; else descSalario += p.v;
+          if(dia <= 15) descSalario += p.v; else descAdiant += p.v;
         } else if(p.fonte === 'extra') descExtra += p.v;
       });
 
-      // 3. ATUALIZAR CARDS (SALDO LÍQUIDO)
+      // 3. ATUALIZAR CARDS
       document.getElementById('r-extra').innerText = fmt(brutoExtra - descExtra);
-      document.getElementById('r-adiant').innerText = fmt(brutoAdiant - descAdiant);
       document.getElementById('r-salario').innerText = fmt(brutoSalario - descSalario);
+      document.getElementById('r-adiant').innerText = fmt(brutoAdiant - descAdiant);
       document.getElementById('r-cartao').innerText = fmt(faturaAberta);
 
       // BARRAS
       document.getElementById('b-extra').style.width = Math.min(((brutoExtra-descExtra)/(brutoExtra||1))*100, 100) + "%";
-      document.getElementById('b-adiant').style.width = Math.min(((brutoAdiant-descAdiant)/(brutoAdiant||1))*100, 100) + "%";
       document.getElementById('b-salario').style.width = Math.min(((brutoSalario-descSalario)/(brutoSalario||1))*100, 100) + "%";
+      document.getElementById('b-adiant').style.width = Math.min(((brutoAdiant-descAdiant)/(brutoAdiant||1))*100, 100) + "%";
       document.getElementById('b-cartao').style.width = Math.min((faturaAberta/(dados.config.limite||1))*100, 100) + "%";
 
       list('l-receitas-fixas', d.r_fixas, 'r_fixas');
@@ -243,7 +242,7 @@
       list('l-contas', d.contas, 'contas');
       list('l-pgs', d.pgs, 'pgs');
       
-      atualizarGrafico(brutoExtra, brutoAdiant, brutoSalario);
+      atualizarGrafico(brutoExtra, brutoSalario, brutoAdiant);
     }
 
     function list(id, arr, tipo) {
@@ -259,6 +258,8 @@
 
     function abrirInput(t) {
       pendente = { tipo: t };
+      document.getElementById('in-valor').value = "";
+      document.getElementById('in-desc').value = "";
       document.getElementById('in-data').value = new Date().toISOString().split('T')[0];
       document.getElementById('modal-input').style.display = 'flex';
     }
@@ -300,17 +301,17 @@
     function tab(e, n) {
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-      document.getElementById('aba-'+n).classList.add('active'); e.target.classList.add('active');
+      document.getElementById('aba-'+n).classList.add('active'); e.currentTarget.classList.add('active');
     }
 
-    function atualizarGrafico(e, a, s) {
+    function atualizarGrafico(e, s, a) {
       const ctx = document.getElementById('meuGrafico').getContext('2d');
       if(chartInstancia) chartInstancia.destroy();
       chartInstancia = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Extra', 'Adiant.', 'Salário'],
-          datasets: [{ data: [e, a, s], backgroundColor: ['#107c10', '#0078d4', '#ffb900'], borderWidth: 0 }]
+          labels: ['Extra', 'Salário', 'Adiant.'],
+          datasets: [{ data: [e, s, a], backgroundColor: ['#107c10', '#0078d4', '#ffb900'], borderWidth: 0 }]
         },
         options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 10 } } } } }
       });
@@ -318,8 +319,17 @@
 
     function gerarPDF() {
       const { jsPDF } = window.jspdf; const doc = new jsPDF();
-      doc.text("Relatório Financeiro MS", 10, 10);
-      doc.save("financeiro.pdf");
+      const mes = document.getElementById("mes_select").value;
+      doc.text("Relatório MS Finanças - " + mes, 10, 10);
+      
+      let rows = [];
+      const d = dados[mes];
+      if(d){
+          d.contas.forEach(c => rows.push([c.data, c.d, fmt(c.v), c.fonte]));
+      }
+      
+      doc.autoTable({ head: [['Data', 'Descrição', 'Valor', 'Fonte']], body: rows });
+      doc.save(`relatorio_${mes}.pdf`);
     }
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
