@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças Cloud v3.4</title>
-  <link rel="manifest" href="/Financas_Mobile/manifest.json">
+  <title>MS Finanças</title>
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0078d4">
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -62,7 +62,7 @@
   <div id="app-content">
     <header>
       <div>
-        <span style="color:var(--blue); font-weight:800;">MS INFORMÁTICA</span>
+        <span style="color:var(--blue); font-weight:800;">MS FINANÇAS</span>
         <div id="status-cloud" style="font-size:0.6rem; color:#888">Sincronizado</div>
       </div>
       <div style="display:flex; gap:10px">
@@ -95,7 +95,7 @@
           <div class="barra-box"><div id="bar-salario" class="progresso"></div></div>
         </div>
         <div class="card" style="border-bottom-color: var(--red);">
-          <h2>Fatura Atual</h2><p id="res-fatura">R$ 0,00</p>
+          <h2>Fatura Cartão</h2><p id="res-fatura">R$ 0,00</p>
           <div class="barra-box"><div id="bar-cartao" class="progresso"></div></div>
         </div>
       </div>
@@ -103,7 +103,7 @@
 
     <main id="aba-receitas" class="tab-content">
       <div class="secao">
-        <h3>Receitas do Mês</h3>
+        <h3>Receitas</h3>
         <div id="lista-receitas"></div>
         <button onclick="addReceita()" class="btn-action" style="background:var(--green)">+ Nova Receita</button>
       </div>
@@ -113,28 +113,28 @@
       <div class="secao">
         <h3>Contas Fixas</h3>
         <div id="lista-fixas"></div>
-        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ Nova Conta Fixa</button>
+        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ Adicionar Fixa</button>
       </div>
       <div class="secao">
-        <h3>Despesas Variáveis</h3>
+        <h3>Variáveis</h3>
         <div id="lista-variaveis"></div>
-        <button onclick="addItem('variaveis')" class="btn-action" style="background:var(--yellow); color:#000">+ Nova Variável</button>
+        <button onclick="addItem('variaveis')" class="btn-action" style="background:var(--yellow); color:#000">+ Adicionar Variável</button>
       </div>
     </main>
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
-        <h3>Pagamentos da Fatura</h3>
+        <h3>Movimentações do Cartão</h3>
         <div id="lista-pagamentos"></div>
-        <button onclick="addItem('pagamentosFatura')" class="btn-action" style="background:var(--blue)">+ Registrar Pagamento</button>
+        <button onclick="addItem('pagamentosFatura')" class="btn-action" style="background:var(--blue)">+ Novo Registro</button>
       </div>
     </main>
 
     <main id="aba-config" class="tab-content">
       <div class="secao">
-        <h3>Configurações</h3>
+        <h3>Configurações Gerais</h3>
         <div class="linha-item">
-          <span>Limite do Cartão:</span>
+          <span>Limite de Crédito:</span>
           <input type="number" id="cfg-limite" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()">
         </div>
         <button class="btn-action" style="background:#444" onclick="mudarAba('resumo')">Voltar</button>
@@ -161,7 +161,7 @@
       const email = document.getElementById('login-email').value;
       const senha = document.getElementById('login-senha').value;
       try { await auth.signInWithEmailAndPassword(email, senha); } 
-      catch (e) { try { await auth.createUserWithEmailAndPassword(email, senha); } catch (err) { alert("Erro de login."); } }
+      catch (e) { try { await auth.createUserWithEmailAndPassword(email, senha); } catch (err) { alert("Falha no acesso."); } }
     }
 
     auth.onAuthStateChanged(user => {
@@ -186,7 +186,7 @@
     async function salvar() {
       const user = auth.currentUser;
       if (user) {
-        document.getElementById('status-cloud').innerText = "Salvando...";
+        document.getElementById('status-cloud').innerText = "Sincronizando...";
         await db.collection("usuarios").doc(user.uid).set(dados);
         document.getElementById('status-cloud').innerText = "Sincronizado";
         renderizar();
@@ -240,8 +240,7 @@
       info.fixas.forEach(f => {
         if(f.meio === 'extra') pExtra += f.valor;
         else if(f.meio === 'adiantamento') pAdiant += f.valor;
-        else if(f.meio === 'salario') pSal += f.valor;
-        else pSal += f.valor; // Default
+        else pSal += f.valor;
       });
 
       info.variaveis.forEach(v => {
@@ -286,7 +285,7 @@
     }
 
     function addReceita() { 
-      const n = prompt("Nome da Receita:"); 
+      const n = prompt("Descrição da Receita:"); 
       if(n){ 
         const v = parseFloat(prompt("Valor:"))||0; 
         dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:v}); 
@@ -300,25 +299,22 @@
       const v = parseFloat(prompt("Valor:"))||0;
       
       let meio = 'debito';
-      if(tipo === 'variaveis' || tipo === 'fixas') {
-        const opcao = prompt("Qual o meio de pagamento?\n1 - Crédito (Cartão)\n2 - Débito (Data Automática)\n3 - Extra (Livre/Dinheiro)");
-        
-        if(opcao === "1") meio = 'cartao';
-        else if(opcao === "2") {
-          const dia = new Date().getDate();
-          meio = (dia <= 15) ? 'adiantamento' : 'salario';
-        } else {
-          meio = 'extra';
-        }
+      const opcao = prompt("Método de Pagamento:\n1 - Crédito (Fatura)\n2 - Débito (Automático por Data)\n3 - Extra (Saldo Livre)");
+      
+      if(opcao === "1") {
+        meio = 'cartao';
+      } else if(opcao === "2") {
+        const dia = new Date().getDate();
+        meio = (dia <= 15) ? 'adiantamento' : 'salario';
+      } else {
+        meio = 'extra';
       }
 
       dados[document.getElementById("mes_select").value][tipo].push({categoria:n, valor:v, meio:meio});
       salvar();
     }
 
-    function remover(t, i) { if(confirm("Deseja remover este item?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
-
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/Financas_Mobile/sw.js'); }
+    function remover(t, i) { if(confirm("Excluir registro?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
   </script>
 </body>
 </html>
