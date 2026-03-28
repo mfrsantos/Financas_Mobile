@@ -6,6 +6,8 @@
   <title>MS Finanças</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0078d4">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -13,40 +15,43 @@
 
   <style>
     :root { --blue: #0078d4; --green: #107c10; --yellow: #ffb900; --orange: #d83b01; --red: #d13438; --bg: #1c1c1c; --card-bg: #2b2b2b; --border: #3c3c3c; }
-    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
-    body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; }
+    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; min-height: 100vh; }
     
-    #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
+    /* Login */
+    #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .login-box { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center; }
+    .login-box input { width: 100%; padding: 12px; margin: 8px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; }
+
+    #app-content { display: none; padding: 15px; max-width: 800px; margin: 0 auto; padding-bottom: 100px; }
     
     /* Tabs */
-    .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
+    .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
     .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.65rem; }
     .tab-btn.active { background: #323232; color: var(--blue); }
 
     /* Cards */
-    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; height: 90px; }
-    .card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; min-height: 85px; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-header { display: flex; align-items: center; gap: 6px; }
     .card h2 { margin: 0; font-size: 0.55rem; color: #b0b0b0; text-transform: uppercase; }
-    .card p { margin: 4px 0; font-size: 0.9rem; font-weight: 800; }
-    .barra-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: #333; }
-    .barra-fill { height: 100%; width: 0%; transition: width 0.6s, background 0.4s; }
+    .card p { margin: 5px 0; font-size: 0.95rem; font-weight: 800; }
+    .barra-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #333; }
+    .barra-fill { height: 100%; width: 0%; transition: width 0.6s ease; }
 
-    /* Listas */
+    /* Custom Modal */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--blue); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; text-align: center; }
+    .modal-btn { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.85rem; }
+
+    /* UI Elements */
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .linha-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #383838; gap: 10px; }
-    .info-area { display: flex; flex: 1; justify-content: space-between; font-size: 0.8rem; }
+    .linha-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #383838; gap: 10px; }
+    .info-area { display: flex; flex: 1; justify-content: space-between; font-size: 0.85rem; }
+    .btn-action { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 800; color: white; cursor: pointer; margin-top: 10px; }
+    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 30px; height: 30px; font-weight: bold; }
     
-    /* Botões */
-    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; color: white; cursor: pointer; margin-top: 5px; }
-    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 26px; height: 26px; }
-
-    /* MODAL CUSTOMIZADO */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
-    .modal-content { background: var(--card-bg); border: 1px solid var(--blue); padding: 20px; border-radius: 20px; width: 100%; max-width: 320px; text-align: center; }
-    .modal-btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
-
-    input, select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 10px; border-radius: 8px; width: 100%; }
+    input, select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     .pago-texto { text-decoration: line-through; color: #666; }
@@ -54,23 +59,36 @@
 </head>
 <body>
 
+  <div id="tela-login">
+    <div class="login-box">
+      <h2 style="color:var(--blue); margin-bottom: 20px; letter-spacing: 2px;">MS FINANÇAS</h2>
+      <input type="email" id="login-email" placeholder="E-mail">
+      <input type="password" id="login-senha" placeholder="Senha">
+      <div style="display:flex; gap:10px; margin-top:15px">
+        <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">ENTRAR</button>
+        <button class="btn-action" style="background:#444" onclick="autenticar('cadastro')">CADASTRAR</button>
+      </div>
+      <p id="login-msg" style="color:var(--red); font-size: 0.7rem; margin-top: 10px;"></p>
+    </div>
+  </div>
+
   <div id="modal-fonte" class="modal">
     <div class="modal-content">
-      <h3 style="margin-top:0">Selecione a Fonte</h3>
-      <button class="modal-btn" style="background:var(--blue)" onclick="escolherFonte('cartao')">💳 Cartão de Crédito</button>
-      <button class="modal-btn" style="background:var(--green)" onclick="escolherFonte('auto')">🏦 Débito Automático</button>
-      <button class="modal-btn" style="background:var(--purple)" onclick="escolherFonte('extra')">💎 Saldo Extra</button>
-      <button class="modal-btn" style="background:#444; margin-top:10px" onclick="fecharModal()">Cancelar</button>
+      <h3 style="margin-top:0; color:var(--blue)">Onde debitar?</h3>
+      <button class="modal-btn" style="background:var(--red)" onclick="escolherFonte('cartao')">💳 CARTÃO DE CRÉDITO</button>
+      <button class="modal-btn" style="background:var(--blue)" onclick="escolherFonte('auto')">🏦 DÉBITO (AUTO)</button>
+      <button class="modal-btn" style="background:var(--green)" onclick="escolherFonte('extra')">💎 SALDO EXTRA</button>
+      <button class="modal-btn" style="background:#444; margin-top:10px" onclick="fecharModal()">CANCELAR</button>
     </div>
   </div>
 
   <div id="app-content">
-    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <span style="color:var(--blue); font-weight:800;">MS FINANÇAS</span>
-      <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-size: 0.7rem;">Sair</button>
+    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <span style="color:var(--blue); font-weight:800; letter-spacing: 1px;">MS FINANÇAS</span>
+      <button onclick="deslogar()" style="background:none; border:none; color:var(--red); font-weight:bold; font-size: 0.75rem;">DESCONECTAR</button>
     </header>
 
-    <select id="mes_select" onchange="renderizar();" style="margin-bottom:15px;"></select>
+    <select id="mes_select" onchange="renderizar();" style="margin-bottom:15px; font-weight: bold;"></select>
 
     <nav class="tab-bar">
       <button class="tab-btn active" onclick="mudarAba(event, 'resumo')">RESUMO</button>
@@ -82,76 +100,108 @@
     <main id="aba-resumo" class="tab-content active">
       <div class="cards-grid">
         <div class="card">
-          <div class="card-header"><span>💎</span><h2>Saldo Extra</h2></div>
+          <div class="card-header"><span>💎</span><h2>Extra</h2></div>
           <p id="res-extra">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-extra" class="barra-fill"></div></div>
         </div>
         <div class="card">
-          <div class="card-header"><span>📅</span><h2>Adiantamento</h2></div>
+          <div class="card-header"><span>📅</span><h2>Adiant.</h2></div>
           <p id="res-adiant">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-adiant" class="barra-fill"></div></div>
         </div>
         <div class="card">
-          <div class="card-header"><span>💰</span><h2>Salário Final</h2></div>
+          <div class="card-header"><span>💰</span><h2>Salário</h2></div>
           <p id="res-salario">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-salario" class="barra-fill"></div></div>
         </div>
         <div class="card">
-          <div class="card-header"><span>💳</span><h2>Uso do Cartão</h2></div>
+          <div class="card-header"><span>💳</span><h2>Cartão</h2></div>
           <p id="res-cartao-info">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-cartao" class="barra-fill"></div></div>
         </div>
       </div>
 
-      <div class="secao" style="margin-top:15px">
-        <h3>Configurações</h3>
-        <label style="font-size:0.7rem; color:#aaa">Limite do Cartão:</label>
-        <input type="number" id="cfg-limite" step="0.01" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()">
+      <div class="secao" style="margin-top:20px">
+        <h3 style="font-size: 0.9rem; margin-top:0">Ajuste de Limite</h3>
+        <input type="number" id="cfg-limite" step="0.01" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()" placeholder="Limite Total Cartão">
       </div>
     </main>
 
     <main id="aba-receitas" class="tab-content">
       <div class="secao">
         <div id="lista-receitas"></div>
-        <button onclick="addReceita()" class="btn-action" style="background:var(--green)">+ Adicionar Receita</button>
+        <button onclick="addReceita()" class="btn-action" style="background:var(--green)">+ NOVA RECEITA</button>
       </div>
     </main>
 
     <main id="aba-despesas" class="tab-content">
       <div class="secao">
-        <h3>Fixas</h3>
+        <h3 style="margin-top:0">Contas Fixas</h3>
         <div id="lista-fixas"></div>
-        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ Nova Fixa</button>
+        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ NOVA FIXA</button>
       </div>
       <div class="secao">
-        <h3>Variáveis</h3>
+        <h3 style="margin-top:0">Variáveis</h3>
         <div id="lista-variaveis"></div>
-        <button onclick="addItem('variaveis')" class="btn-action" style="background:var(--yellow); color:#000">+ Nova Variável</button>
+        <button onclick="addItem('variaveis')" class="btn-action" style="background:var(--yellow); color:#000">+ NOVA VARIÁVEL</button>
       </div>
     </main>
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
-        <h3>Pagamentos Realizados</h3>
+        <h3 style="margin-top:0">Histórico de Pagamentos</h3>
         <div id="lista-pagamentos"></div>
-        <button onclick="pagarFatura()" class="btn-action" style="background:var(--blue)">+ Registrar Pagamento</button>
+        <button onclick="pagarFatura()" class="btn-action" style="background:var(--blue)">+ PAGAR FATURA</button>
       </div>
     </main>
   </div>
 
   <script>
-    // Config Firebase
-    const firebaseConfig = { apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0", authDomain: "ms-financas.firebaseapp.com", projectId: "ms-financas", storageBucket: "ms-financas.firebasestorage.app", messagingSenderId: "825396392769", appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0" };
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0", 
+        authDomain: "ms-financas.firebaseapp.com", 
+        projectId: "ms-financas", 
+        storageBucket: "ms-financas.firebasestorage.app", 
+        messagingSenderId: "825396392769", 
+        appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0" 
+    };
+    
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
     let dados = {};
-    let pendentePagamento = { tipo: '', index: '' };
+    let acaoPendente = { tipo: '', index: '', valor: 0, desc: '' };
 
+    // CONTROLE DE ACESSO SEM LOOP
     auth.onAuthStateChanged(user => {
-      if (user) { document.getElementById('app-content').style.display = 'block'; carregarDados(user.uid); }
-      else { window.location.href = "index.html"; } // Simples fallback para login
+      const login = document.getElementById('tela-login');
+      const app = document.getElementById('app-content');
+      if (user) {
+        login.style.display = 'none';
+        app.style.display = 'block';
+        carregarDados(user.uid);
+      } else {
+        app.style.display = 'none';
+        login.style.display = 'flex';
+      }
     });
+
+    async function autenticar(tipo) {
+      const e = document.getElementById('login-email').value;
+      const s = document.getElementById('login-senha').value;
+      const msg = document.getElementById('login-msg');
+      try {
+        if(tipo === 'login') await auth.signInWithEmailAndPassword(e, s);
+        else { await auth.createUserWithEmailAndPassword(e, s); alert("Sucesso!"); }
+      } catch (err) { msg.innerText = "Falha no acesso."; }
+    }
+
+    async function deslogar() {
+        if(confirm("Deseja realmente sair?")) {
+            await auth.signOut();
+            window.location.reload();
+        }
+    }
 
     async function carregarDados(uid) {
       const doc = await db.collection("usuarios").doc(uid).get();
@@ -168,13 +218,15 @@
     }
 
     function inicializar() {
-      const base = { config: { limiteCartao: 2000.00 } };
-      for (let m = 1; m <= 12; m++) { base[`2026-${String(m).padStart(2, '0')}`] = { receitas: [{desc: "Adiantamento", valor: 0}, {desc: "Salário", valor: 0}], fixas: [], variaveis: [], pagamentosFatura: [] }; }
+      const base = { config: { limiteCartao: 2000 } };
+      for (let m = 1; m <= 12; m++) {
+        base[`2026-${String(m).padStart(2, '0')}`] = { receitas: [{desc: "Adiantamento", valor: 0}, {desc: "Salário", valor: 0}], fixas: [], variaveis: [], pagamentosFatura: [] };
+      }
       return base;
     }
 
     function formatar(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-    function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+    function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase(); }
 
     function renderizar() {
       const mes = document.getElementById("mes_select").value || "2026-03";
@@ -182,12 +234,12 @@
 
       document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `
         <div class="linha-item"><span class="info-area"><b>${r.desc}</b></span>
-        <input type="number" step="0.01" style="width:90px" value="${r.valor.toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
+        <input type="number" step="0.01" style="width:100px" value="${r.valor.toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
         </div>`).join('');
 
       document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => `
         <div class="linha-item">
-          <input type="checkbox" style="width:22px;height:22px" ${f.pago ? 'checked' : ''} onchange="acionarCheck(${i}, this.checked)">
+          <input type="checkbox" style="width:24px;height:24px" ${f.pago ? 'checked' : ''} onchange="acionarCheck(${i}, this.checked)">
           <div class="info-area ${f.pago ? 'pago-texto' : ''}"><span>${f.categoria}</span><b>${formatar(f.valor)}</b></div>
           <button onclick="remover('fixas', ${i})" class="btn-del">×</button>
         </div>`).join('');
@@ -197,21 +249,20 @@
         <button onclick="remover('variaveis', ${i})" class="btn-del">×</button></div>`).join('');
 
       document.getElementById("lista-pagamentos").innerHTML = info.pagamentosFatura.map((p, i) => `
-        <div class="linha-item"><div class="info-area"><span>Pagamento Fatura</span><b>${formatar(p.valor)}</b></div>
+        <div class="linha-item"><div class="info-area"><span>Pgto Fatura</span><b>${formatar(p.valor)}</b></div>
         <button onclick="remover('pagamentosFatura', ${i})" class="btn-del">×</button></div>`).join('');
 
       atualizarResumo(mes);
     }
 
-    // GATILHO: SÓ PERGUNTA AO CLICAR NO CHECKBOX
-    function acionarCheck(index, isChecked) {
-      if(isChecked) {
-        pendentePagamento = { tipo: 'fixas', index: index };
+    function acionarCheck(i, checked) {
+      if(checked) {
+        acaoPendente = { tipo: 'fixas', index: i };
         document.getElementById('modal-fonte').style.display = 'flex';
       } else {
         const mes = document.getElementById("mes_select").value;
-        dados[mes].fixas[index].pago = false;
-        dados[mes].fixas[index].meio = '';
+        dados[mes].fixas[i].pago = false;
+        dados[mes].fixas[i].meio = '';
         salvar();
       }
     }
@@ -221,31 +272,30 @@
       let meioReal = fonte;
       if(fonte === 'auto') meioReal = (new Date().getDate() <= 15) ? 'adiantamento' : 'salario';
       
-      if(pendentePagamento.tipo === 'fatura') {
-          dados[mes].pagamentosFatura.push({valor: pendentePagamento.valor, fonte: meioReal});
+      if(acaoPendente.tipo === 'fatura') {
+          dados[mes].pagamentosFatura.push({valor: acaoPendente.valor, fonte: meioReal});
+      } else if(acaoPendente.tipo === 'variaveis') {
+          dados[mes].variaveis.push({categoria: acaoPendente.desc, valor: acaoPendente.valor, meio: meioReal, pago: true});
       } else {
-          dados[mes][pendentePagamento.tipo][pendentePagamento.index].pago = true;
-          dados[mes][pendentePagamento.tipo][pendentePagamento.index].meio = meioReal;
+          dados[mes].fixas[acaoPendente.index].pago = true;
+          dados[mes].fixas[acaoPendente.index].meio = meioReal;
       }
       fecharModal();
       salvar();
     }
 
-    function fecharModal() { 
-        document.getElementById('modal-fonte').style.display = 'none'; 
-        renderizar(); 
-    }
+    function fecharModal() { document.getElementById('modal-fonte').style.display = 'none'; renderizar(); }
 
     function atualizarResumo(mes) {
       const info = dados[mes];
       let vEx=0, vAd=0, vSa=0, pEx=0, pAd=0, pSa=0, gCa=0, pgFa=0;
 
-      // SEPARAÇÃO RIGOROSA DE RECEITAS
+      // SEPARAÇÃO DE CAIXAS (Lógica MS Informática)
       info.receitas.forEach(r => {
         const n = r.desc.toLowerCase();
         if(n.includes("adiant")) vAd += r.valor; 
         else if(n.includes("salario")) vSa += r.valor; 
-        else vEx += r.valor; // Se não tem "adiant" nem "salario", é EXTRA purificado.
+        else vEx += r.valor;
       });
 
       info.fixas.forEach(f => {
@@ -291,20 +341,16 @@
     }
 
     function pagarFatura() {
-      const v = parseFloat(prompt("Valor:"))||0; if(v <= 0) return;
-      pendentePagamento = { tipo: 'fatura', valor: v };
-      document.getElementById('modal-fonte').style.display = 'flex';
+      const v = parseFloat(prompt("Valor do Pagamento:"))||0;
+      if(v > 0) { acaoPendente = { tipo: 'fatura', valor: v }; document.getElementById('modal-fonte').style.display = 'flex'; }
     }
 
     function addItem(tipo) {
       let n = prompt("Descrição:"); if(!n) return;
       const v = parseFloat(prompt("Valor:"))||0;
       if(tipo === 'variaveis') {
-          pendentePagamento = { tipo: 'variaveis', desc: cap(n), valor: v };
+          acaoPendente = { tipo: 'variaveis', desc: cap(n), valor: v };
           document.getElementById('modal-fonte').style.display = 'flex';
-          // Para variáveis, criamos o objeto já no escolherFonte
-          dados[document.getElementById("mes_select").value].variaveis.push({categoria:cap(n), valor:v, meio:'', pago:true});
-          pendentePagamento.index = dados[document.getElementById("mes_select").value].variaveis.length - 1;
       } else {
           dados[document.getElementById("mes_select").value].fixas.push({categoria:cap(n), valor:v, meio:'', pago:false});
           salvar();
@@ -312,7 +358,7 @@
     }
 
     function addReceita() {
-      let n = prompt("Nome:"); if(!n) return;
+      let n = prompt("Nome da Receita:"); if(!n) return;
       const v = parseFloat(prompt("Valor:"))||0;
       dados[document.getElementById("mes_select").value].receitas.push({desc:cap(n), valor:v});
       salvar();
@@ -334,7 +380,7 @@
       document.getElementById(`aba-${aba}`).classList.add('active'); e.currentTarget.classList.add('active');
     }
 
-    function remover(t, i) { if(confirm("Remover?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
+    function remover(t, i) { if(confirm("Remover registro?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
   </script>
 </body>
 </html>
