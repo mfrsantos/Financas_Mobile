@@ -1,4 +1,4 @@
-//Versão 4.7
+//Versão 4.8 - Banco de Dados limpo
 const CACHE_NAME = 'ms-financas-v3.2';
 
 // Lista de ativos com o caminho do repositório
