@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.4.0</title>
+  <title>MS Finanças v6.4.1</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -11,65 +11,128 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    :root { --blue: #0078d4; --green: #107c10; --yellow: #ffb900; --orange: #d83b01; --red: #d13438; --bg: #1c1c1c; --card-bg: #2b2b2b; --border: #3c3c3c; }
-    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; background: var(--bg); color: #fff; padding-bottom: 50px; }
+    :root { 
+      --blue: #00a2ff; --green: #2ecc71; --yellow: #f1c40f; 
+      --orange: #e67e22; --red: #e74c3c; --bg: #0f172a; 
+      --card-bg: rgba(30, 41, 59, 0.7); --border: rgba(255, 255, 255, 0.1); 
+    }
     
-    input, select { width: 100%; padding: 20px; margin-bottom: 15px; border-radius: 12px; background: #111; color: #fff; border: 1px solid #444; font-size: 1.1rem; }
-    .btn-action { width: 100%; padding: 22px; border: none; border-radius: 15px; font-weight: 800; color: white; cursor: pointer; margin-top: 10px; font-size: 1.1rem; }
+    * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
     
-    #app-content { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
-    .tab-bar { display: flex; background: #252525; border-radius: 15px; padding: 5px; margin-bottom: 20px; border: 1px solid var(--border); }
-    .tab-btn { flex: 1; padding: 18px 5px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 10px; font-size: 0.75rem; }
-    .tab-btn.active { background: #323232; color: var(--blue); border: 1px solid #444; }
+    body { 
+      margin: 0; background: radial-gradient(circle at top right, #1e293b, #0f172a); 
+      color: #f8fafc; min-height: 100vh; padding-bottom: 60px;
+    }
     
-    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .card { padding: 15px; border-radius: 15px; background: var(--card-bg); border: 1px solid var(--border); height: 160px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
-    .card h2 { margin: 0; font-size: 0.7rem; color: #b0b0b0; text-transform: uppercase; margin-bottom: 8px; }
-    .card p { margin: 2px 0; font-size: 1.1rem; font-weight: 800; z-index: 2; }
-    
-    /* Estilo específico para o Card de Cartão */
-    .card-info-linha { font-size: 1rem; font-weight: 600; margin: 2px 0; }
-    .label-utilizado { color: var(--red); }
-    .label-disponivel { color: var(--green); }
+    /* Inputs Estilizados */
+    input, select { 
+      width: 100%; padding: 18px; margin-bottom: 15px; border-radius: 16px; 
+      background: rgba(15, 23, 42, 0.8); color: #fff; border: 1px solid var(--border); 
+      font-size: 1.1rem; transition: border 0.3s;
+    }
+    input:focus { border-color: var(--blue); outline: none; }
 
-    .barra-progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: #333; }
-    .fill { height: 100%; transition: width 0.5s ease, background 0.3s; }
-
-    .secao { background: var(--card-bg); padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px solid var(--border); }
-    .linha-item { display: flex; align-items: center; padding: 18px 0; border-bottom: 1px solid #383838; gap: 12px; }
+    .btn-action { 
+      width: 100%; padding: 20px; border: none; border-radius: 18px; 
+      font-weight: 700; color: white; cursor: pointer; margin-top: 10px; 
+      font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
     
-    .check-pg { width: 40px; height: 40px; border: 2px solid #666; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-    .check-pg.pago { background: var(--green); border-color: var(--green); }
-    .check-pg.pago::after { content: '✓'; color: white; font-weight: bold; font-size: 1.2rem; }
+    #app-content { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
 
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
-    .modal-content { background: var(--card-bg); border: 2px solid var(--blue); padding: 25px; border-radius: 25px; width: 100%; max-width: 400px; }
-    .tab-content { display: none; }
+    /* Navegação */
+    .tab-bar { 
+      display: flex; background: var(--card-bg); backdrop-filter: blur(10px);
+      border-radius: 20px; padding: 6px; margin-bottom: 25px; border: 1px solid var(--border); 
+    }
+    .tab-btn { 
+      flex: 1; padding: 15px 5px; border: none; background: transparent; 
+      color: #94a3b8; font-weight: 600; border-radius: 14px; font-size: 0.8rem;
+      transition: all 0.3s;
+    }
+    .tab-btn.active { background: var(--blue); color: #fff; }
+    
+    /* Grid de Cards */
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .card { 
+      padding: 20px; border-radius: 24px; background: var(--card-bg); 
+      border: 1px solid var(--border); height: 160px; display: flex; 
+      flex-direction: column; justify-content: center; position: relative; 
+      overflow: hidden; backdrop-filter: blur(5px);
+    }
+    .card h2 { margin: 0 0 10px 0; font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    .card p { margin: 0; font-size: 1.2rem; font-weight: 800; z-index: 2; color: #fff; }
+    
+    .card-info-linha { font-size: 0.95rem; font-weight: 500; margin: 3px 0; }
+
+    /* Barra de Progresso Minimalista */
+    .barra-progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.05); }
+    .fill { height: 100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* Seções */
+    .secao { 
+      background: var(--card-bg); padding: 25px; border-radius: 28px; 
+      margin-bottom: 25px; border: 1px solid var(--border); 
+    }
+    .linha-item { 
+      display: flex; align-items: center; padding: 20px 0; 
+      border-bottom: 1px solid rgba(255,255,255,0.05); gap: 15px; 
+    }
+    
+    /* Botão de Checkbox Moderno */
+    .check-pg { 
+      width: 42px; height: 42px; border: 2px solid #475569; border-radius: 14px; 
+      display: flex; align-items: center; justify-content: center; cursor: pointer; 
+      flex-shrink: 0; transition: all 0.2s;
+    }
+    .check-pg.pago { background: var(--green); border-color: var(--green); box-shadow: 0 0 15px rgba(46, 204, 113, 0.4); }
+    .check-pg.pago::after { content: '✓'; color: white; font-weight: 900; font-size: 1.3rem; }
+
+    /* Gráfico Reduzido */
+    .chart-container { 
+      width: 100%; max-width: 250px; margin: 20px auto; 
+      position: relative; height: 250px; 
+    }
+
+    /* Modais */
+    .modal { 
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+      backdrop-filter: blur(8px); z-index: 10000; align-items: center; 
+      justify-content: center; padding: 20px; 
+    }
+    .modal-content { 
+      background: #1e293b; border: 1px solid var(--blue); 
+      padding: 30px; border-radius: 32px; width: 100%; max-width: 420px; 
+    }
+    
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
     .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
   <div id="tela-login" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px;">
-    <div id="box-login" style="background: var(--card-bg); padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center;">
-      <h2 style="color:var(--blue); margin-bottom:20px;">MS FINANÇAS</h2>
+    <div id="box-login" style="background: var(--card-bg); padding: 40px; border-radius: 30px; width: 100%; max-width: 380px; border: 1px solid var(--blue); text-align: center;">
+      <h1 style="color:#fff; margin-bottom:10px; font-size: 1.8rem;">MS FINANÇAS</h1>
+      <p style="color:#94a3b8; margin-bottom: 30px;">Gestão Inteligente</p>
       <input type="email" id="l-email" placeholder="E-mail">
       <input type="password" id="l-pass" placeholder="Senha">
-      <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">ENTRAR</button>
-      <button onclick="alternarTela('cadastro')" style="background:none; border:none; color:var(--blue); margin-top:15px; font-weight:bold;">CRIAR NOVA CONTA</button>
+      <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">Entrar no Sistema</button>
+      <button onclick="alternarTela('cadastro')" style="background:none; border:none; color:var(--blue); margin-top:20px; font-weight:600; cursor:pointer;">Criar nova conta empresarial</button>
     </div>
-    <div id="box-cadastro" style="background: var(--card-bg); padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; border: 1px solid var(--green); text-align: center; display:none;">
-      <h2 style="color:var(--green); margin-bottom:20px;">CADASTRO</h2>
-      <input type="email" id="c-email" placeholder="E-mail">
-      <input type="password" id="c-pass" placeholder="Senha">
-      <button class="btn-action" style="background:var(--green)" onclick="autenticar('cadastro')">CADASTRAR</button>
-      <button onclick="alternarTela('login')" style="background:none; border:none; color:#888; margin-top:15px;">Voltar</button>
+    <div id="box-cadastro" style="background: var(--card-bg); padding: 40px; border-radius: 30px; width: 100%; max-width: 380px; border: 1px solid var(--green); text-align: center; display:none;">
+      <h2 style="color:#fff; margin-bottom:25px;">CADASTRO</h2>
+      <input type="email" id="c-email" placeholder="Seu melhor e-mail">
+      <input type="password" id="c-pass" placeholder="Crie uma senha forte">
+      <button class="btn-action" style="background:var(--green)" onclick="autenticar('cadastro')">Finalizar Cadastro</button>
+      <button onclick="alternarTela('login')" style="background:none; border:none; color:#94a3b8; margin-top:20px;">Já tenho conta? Voltar</button>
     </div>
   </div>
 
   <div id="app-content">
-    <select id="mes_select" onchange="renderizar();"></select>
+    <select id="mes_select" onchange="renderizar();" style="margin-bottom: 20px; font-weight: 700; border-radius: 20px;"></select>
 
     <nav class="tab-bar">
       <button class="tab-btn active" onclick="mudarTab(event, 'resumo')">RESUMO</button>
@@ -95,56 +158,63 @@
             <p id="r-adiant">R$ 0,00</p>
             <div class="barra-progresso"><div id="f-adiant" class="fill"></div></div>
         </div>
-        <div class="card" id="card-cartao-resumo">
-            <h2>💳 Cartão de Crédito</h2>
-            <p class="card-info-linha">Total: <span id="c-total-val">R$ 0,00</span></p>
-            <p class="card-info-linha label-utilizado">Uso: <span id="c-uso-val">R$ 0,00</span></p>
-            <p class="card-info-linha label-disponivel">Disp: <span id="c-disp-val">R$ 0,00</span></p>
+        <div class="card">
+            <h2>💳 Crédito</h2>
+            <p class="card-info-linha" style="color:#94a3b8">Uso: <span id="c-uso-val" style="color:#fff">R$ 0</span></p>
+            <p class="card-info-linha" style="color:#94a3b8">Disp: <span id="c-disp-val" style="color:var(--green)">R$ 0</span></p>
             <div class="barra-progresso"><div id="f-cartao" class="fill"></div></div>
         </div>
       </div>
-      <center><canvas id="meuGrafico" style="max-width:320px; margin-top:30px;"></canvas></center>
+      
+      <div class="chart-container">
+        <canvas id="meuGrafico"></canvas>
+      </div>
     </main>
 
     <main id="aba-receitas" class="tab-content">
       <div class="secao">
-        <h3>Recebimentos</h3>
+        <h3 style="margin-top:0">Gestão de Rendas</h3>
         <div id="l-receitas"></div>
-        <button onclick="abrirModal('r_fixas')" class="btn-action" style="background:var(--blue)">+ SALÁRIO / ADIANT.</button>
-        <button onclick="abrirModal('r_extras')" class="btn-action" style="background:var(--green)">+ RENDA EXTRA</button>
+        <button onclick="abrirModal('r_fixas')" class="btn-action" style="background:linear-gradient(to right, #0078d4, #00a2ff)">+ Salário / Adiantamento</button>
+        <button onclick="abrirModal('r_extras')" class="btn-action" style="background:linear-gradient(to right, #107c10, #2ecc71)">+ Nova Renda Extra</button>
       </div>
     </main>
 
     <main id="aba-despesas" class="tab-content">
-      <div class="secao"><h3>Minhas Contas</h3><div id="l-contas"></div><button onclick="abrirModal('contas')" class="btn-action" style="background:var(--orange)">+ NOVA CONTA</button></div>
+      <div class="secao">
+        <h3 style="margin-top:0">Contas do Mês</h3>
+        <div id="l-contas"></div>
+        <button onclick="abrirModal('contas')" class="btn-action" style="background:linear-gradient(to right, #d83b01, #e67e22)">+ Adicionar Conta (Vencimento)</button>
+      </div>
     </main>
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
-        <label>Limite Total do Cartão:</label>
-        <input type="number" id="c-limite" onchange="salvarLimite(this.value)">
-        <h3>Antecipações Realizadas</h3>
+        <label style="font-size:0.9rem; color:#94a3b8; font-weight:600">Configurar Limite Total:</label>
+        <input type="number" id="c-limite" onchange="salvarLimite(this.value)" style="margin-top:10px">
+        <h3>Antecipações</h3>
         <div id="l-pgs"></div>
-        <button onclick="abrirModal('pgs')" class="btn-action" style="background:var(--blue)">+ ANTECIPAR FATURA</button>
+        <button onclick="abrirModal('pgs')" class="btn-action" style="background:var(--blue)">+ Antecipar Fatura</button>
       </div>
     </main>
   </div>
 
   <div id="modal-input" class="modal"><div class="modal-content">
-    <h3 id="input-titulo">Novo Registro</h3>
-    <div id="div-desc"><input type="text" id="in-desc" placeholder="Descrição"></div>
-    <input type="number" id="in-valor" placeholder="Valor R$">
+    <h3 id="input-titulo" style="margin-top:0; color:#fff">Novo Registro</h3>
+    <div id="div-desc"><input type="text" id="in-desc" placeholder="Ex: Internet"></div>
+    <input type="number" id="in-valor" placeholder="R$ 0,00">
     <input type="date" id="in-data">
-    <button class="btn-action" style="background:var(--blue)" onclick="salvarNovo()">SALVAR</button>
-    <button class="btn-action" style="background:#444" onclick="fecharModais()">CANCELAR</button>
+    <button class="btn-action" style="background:var(--blue)" onclick="salvarNovo()">Confirmar</button>
+    <button class="btn-action" style="background:#334155" onclick="fecharModais()">Cancelar</button>
   </div></div>
 
   <div id="modal-pagar" class="modal"><div class="modal-content">
-    <h3>Pagar com:</h3>
-    <p id="pg-info" style="color:#aaa;"></p>
-    <button class="btn-action" style="background:var(--blue)" onclick="processarPagamento('debito')">DÉBITO (SALÁRIO/AD.)</button>
-    <button class="btn-action" style="background:var(--green)" onclick="processarPagamento('extra')">RENDA EXTRA</button>
-    <button id="btn-pg-credito" class="btn-action" style="background:var(--red)" onclick="processarPagamento('credito')">CARTÃO DE CRÉDITO</button>
+    <h3 style="margin-top:0; color:#fff">Confirmar Pagamento</h3>
+    <p id="pg-info" style="color:#94a3b8; font-size: 1.1rem; margin-bottom: 25px;"></p>
+    <button class="btn-action" style="background:var(--blue); margin-bottom:10px" onclick="processarPagamento('debito')">Débito (Salário/Ad.)</button>
+    <button class="btn-action" style="background:var(--green); margin-bottom:10px" onclick="processarPagamento('extra')">Renda Extra</button>
+    <button id="btn-pg-credito" class="btn-action" style="background:var(--red)" onclick="processarPagamento('credito')">Lançar no Crédito</button>
+    <button class="btn-action" style="background:#334155; margin-top:15px" onclick="fecharModais()">Voltar</button>
   </div></div>
 
   <script>
@@ -169,6 +239,7 @@
     async function autenticar(m) {
       const e = document.getElementById(m==='login'?'l-email':'c-email').value;
       const p = document.getElementById(m==='login'?'l-pass':'c-pass').value;
+      if(!e || !p) return alert("Preencha os campos!");
       try {
         if(m==='login') await auth.signInWithEmailAndPassword(e,p);
         else await auth.createUserWithEmailAndPassword(e,p);
@@ -187,9 +258,9 @@
     function salvarLimite(v) { if(!dados.config) dados.config = {}; dados.config.limite = parseFloat(v) || 0; save(); }
 
     function getCor(percent) {
-        if(percent < 60) return 'var(--green)';
-        if(percent < 80) return 'var(--orange)';
-        return 'var(--red)';
+        if(percent < 60) return '#2ecc71';
+        if(percent < 80) return '#e67e22';
+        return '#e74c3c';
     }
 
     function renderizar() {
@@ -200,21 +271,18 @@
       let bSalario = d.r_fixas.filter(r => !r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
       let bAdiant = d.r_fixas.filter(r => r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
       let bExtra = d.r_extras.reduce((a,b)=>a+b.v,0);
-      let totalRenda = bSalario + bAdiant + bExtra;
 
-      let dSalario = 0, dAdiant = 0, dExtra = 0, fatura = 0, totalDespesa = 0;
+      let dSalario = 0, dAdiant = 0, dExtra = 0, fatura = 0, totalGasto = 0;
 
       d.contas.forEach(c => {
         if(c.pago) {
-            totalDespesa += c.v;
+            totalGasto += c.v;
             if(c.fonte === 'debito') {
                 let dia = parseInt(c.data.split('-')[2]);
                 if(dia <= 15) dSalario += c.v; else dAdiant += c.v;
             } else if(c.fonte === 'extra') dExtra += c.v;
             else if(c.fonte === 'credito') fatura += c.v;
-        } else if(c.fonte === 'credito') {
-             fatura += c.v;
-        }
+        } else if(c.fonte === 'credito') { fatura += c.v; }
       });
 
       d.pgs.forEach(p => {
@@ -227,7 +295,6 @@
 
       const lim = dados.config?.limite || 0;
       
-      // Update Cards
       document.getElementById('r-extra').innerText = fmt(bExtra - dExtra);
       document.getElementById('f-extra').style.width = Math.min((dExtra/(bExtra||1))*100, 100) + "%";
       document.getElementById('f-extra').style.background = getCor((dExtra/(bExtra||1))*100);
@@ -240,29 +307,27 @@
       document.getElementById('f-adiant').style.width = Math.min((dAdiant/(bAdiant||1))*100, 100) + "%";
       document.getElementById('f-adiant').style.background = getCor((dAdiant/(bAdiant||1))*100);
 
-      // Card Cartão Tamanho Normal
-      document.getElementById('c-total-val').innerText = fmt(lim);
       document.getElementById('c-uso-val').innerText = fmt(fatura);
       document.getElementById('c-disp-val').innerText = fmt(lim - fatura);
       document.getElementById('f-cartao').style.width = Math.min((fatura/(lim||1))*100, 100) + "%";
       document.getElementById('f-cartao').style.background = getCor((fatura/(lim||1))*100);
 
       desenharListas(d);
-      atualizarGrafico(totalRenda, totalDespesa);
+      atualizarGrafico(bSalario + bAdiant + bExtra, totalGasto);
     }
 
     function desenharListas(d) {
       const lRec = document.getElementById('l-receitas'); lRec.innerHTML = "";
       [...d.r_fixas, ...d.r_extras].forEach((item) => {
-        lRec.innerHTML += `<div class="linha-item"><div style="flex:1"><b>${item.d}</b></div><span>${fmt(item.v)}</span></div>`;
+        lRec.innerHTML += `<div class="linha-item"><div style="flex:1"><b style="color:#fff">${item.d}</b></div><span style="font-weight:700">${fmt(item.v)}</span></div>`;
       });
       const lContas = document.getElementById('l-contas'); lContas.innerHTML = "";
       d.contas.forEach((c, i) => {
-        lContas.innerHTML += `<div class="linha-item"><div class="check-pg ${c.pago?'pago':''}" onclick="tentarPagar(${i})"></div><div style="flex:1"><b>${c.d}</b><br><small>${c.data}</small></div><span>${fmt(c.v)}</span><button onclick="excluir('contas', ${i})" style="border:none; background:none; color:var(--red); padding:10px;">X</button></div>`;
+        lContas.innerHTML += `<div class="linha-item"><div class="check-pg ${c.pago?'pago':''}" onclick="tentarPagar(${i})"></div><div style="flex:1"><b style="color:#fff">${c.d}</b><br><small style="color:#94a3b8">${c.data}</small></div><span style="font-weight:700">${fmt(c.v)}</span><button onclick="excluir('contas', ${i})" style="border:none; background:none; color:var(--red); font-weight:bold; cursor:pointer; padding:10px;">X</button></div>`;
       });
       const lPgs = document.getElementById('l-pgs'); lPgs.innerHTML = "";
       d.pgs.forEach((p, i) => {
-          lPgs.innerHTML += `<div class="linha-item"><div style="flex:1"><b>${p.d}</b></div><span>${fmt(p.v)}</span><button onclick="excluir('pgs', ${i})" style="border:none; background:none; color:var(--red); padding:10px;">X</button></div>`;
+          lPgs.innerHTML += `<div class="linha-item"><div style="flex:1"><b style="color:#fff">${p.d}</b></div><span style="font-weight:700">${fmt(p.v)}</span><button onclick="excluir('pgs', ${i})" style="border:none; background:none; color:var(--red); font-weight:bold; cursor:pointer; padding:10px;">X</button></div>`;
       });
     }
 
@@ -271,7 +336,7 @@
       document.getElementById('in-valor').value = "";
       document.getElementById('in-data').value = new Date().toISOString().split('T')[0];
       const divDesc = document.getElementById('div-desc');
-      if(t === 'pgs') { divDesc.style.display = 'none'; pendente.d = "Antecipação da Fatura"; }
+      if(t === 'pgs') { divDesc.style.display = 'none'; pendente.d = "Antecipação Fatura"; }
       else { divDesc.style.display = 'block'; document.getElementById('in-desc').value = ""; }
       document.getElementById('modal-input').style.display = 'flex';
     }
@@ -279,7 +344,7 @@
     function salvarNovo() {
       const v = parseFloat(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value;
       const d = pendente.tipo === 'pgs' ? pendente.d : document.getElementById('in-desc').value;
-      if(!v || !d) return alert("Preencha os campos");
+      if(!v || !d) return alert("Preencha corretamente!");
       const mes = document.getElementById("mes_select").value;
       if(pendente.tipo === 'pgs') {
           pendente.v = v; pendente.data = dt;
@@ -314,7 +379,7 @@
     }
 
     function fecharModais() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
-    function excluir(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
+    function excluir(t, i) { if(confirm("Deseja realmente excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
 
     function popMeses() {
       const s = document.getElementById("mes_select"); if(s.options.length>0) return;
@@ -330,13 +395,19 @@
       document.getElementById('aba-'+n).classList.add('active'); e.target.classList.add('active');
     }
 
-    function atualizarGrafico(renda, despesa) {
+    function atualizarGrafico(renda, gasto) {
       const ctx = document.getElementById('meuGrafico').getContext('2d');
       if(chartInstancia) chartInstancia.destroy();
       chartInstancia = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: ['Renda Total', 'Gasto Total'], datasets: [{ data: [renda, despesa], backgroundColor: ['#107c10', '#d13438'], borderWidth: 0 }] },
-        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 12 } } } } }
+        data: { labels: ['Renda', 'Gasto'], datasets: [{ data: [renda, gasto], backgroundColor: ['#2ecc71', '#e74c3c'], borderWidth: 0, hoverOffset: 4 }] },
+        options: { 
+            cutout: '75%', 
+            plugins: { 
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12, weight: '600' }, padding: 20 } } 
+            },
+            maintainAspectRatio: false
+        }
       });
     }
   </script>
