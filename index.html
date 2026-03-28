@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.3.8</title>
+  <title>MS Finanças v6.4.0</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -24,19 +24,24 @@
     .tab-btn.active { background: #323232; color: var(--blue); border: 1px solid #444; }
     
     .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .card { padding: 15px; border-radius: 15px; background: var(--card-bg); border: 1px solid var(--border); height: 125px; display: flex; flex-direction: column; justify-content: center; }
-    .card h2 { margin: 0; font-size: 0.7rem; color: #b0b0b0; text-transform: uppercase; margin-bottom: 5px; }
-    .card p { margin: 0; font-size: 1.3rem; font-weight: 800; }
+    .card { padding: 15px; border-radius: 15px; background: var(--card-bg); border: 1px solid var(--border); height: 160px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+    .card h2 { margin: 0; font-size: 0.7rem; color: #b0b0b0; text-transform: uppercase; margin-bottom: 8px; }
+    .card p { margin: 2px 0; font-size: 1.1rem; font-weight: 800; z-index: 2; }
     
+    /* Estilo específico para o Card de Cartão */
+    .card-info-linha { font-size: 1rem; font-weight: 600; margin: 2px 0; }
+    .label-utilizado { color: var(--red); }
+    .label-disponivel { color: var(--green); }
+
+    .barra-progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: #333; }
+    .fill { height: 100%; transition: width 0.5s ease, background 0.3s; }
+
     .secao { background: var(--card-bg); padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px solid var(--border); }
     .linha-item { display: flex; align-items: center; padding: 18px 0; border-bottom: 1px solid #383838; gap: 12px; }
     
-    .check-pg { width: 35px; height: 35px; border: 2px solid #666; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+    .check-pg { width: 40px; height: 40px; border: 2px solid #666; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
     .check-pg.pago { background: var(--green); border-color: var(--green); }
-    .check-pg.pago::after { content: '✓'; color: white; font-weight: bold; }
-
-    .vencida { color: var(--red) !important; font-weight: bold; }
-    .alerta { color: var(--yellow) !important; }
+    .check-pg.pago::after { content: '✓'; color: white; font-weight: bold; font-size: 1.2rem; }
 
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
     .modal-content { background: var(--card-bg); border: 2px solid var(--blue); padding: 25px; border-radius: 25px; width: 100%; max-width: 400px; }
@@ -52,9 +57,8 @@
       <input type="email" id="l-email" placeholder="E-mail">
       <input type="password" id="l-pass" placeholder="Senha">
       <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">ENTRAR</button>
-      <button onclick="alternarTela('cadastro')" style="background:none; border:none; color:var(--blue); margin-top:15px; font-weight:bold; cursor:pointer;">CRIAR NOVA CONTA</button>
+      <button onclick="alternarTela('cadastro')" style="background:none; border:none; color:var(--blue); margin-top:15px; font-weight:bold;">CRIAR NOVA CONTA</button>
     </div>
-
     <div id="box-cadastro" style="background: var(--card-bg); padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; border: 1px solid var(--green); text-align: center; display:none;">
       <h2 style="color:var(--green); margin-bottom:20px;">CADASTRO</h2>
       <input type="email" id="c-email" placeholder="E-mail">
@@ -76,12 +80,30 @@
 
     <main id="aba-resumo" class="tab-content active">
       <div class="cards-grid">
-        <div class="card"><h2>💎 Extra</h2><p id="r-extra">R$ 0,00</p></div>
-        <div class="card"><h2>💰 Salário (01-15)</h2><p id="r-salario">R$ 0,00</p></div>
-        <div class="card"><h2>📅 Adiant. (16-31)</h2><p id="r-adiant">R$ 0,00</p></div>
-        <div class="card"><h2>💳 Fatura</h2><p id="r-cartao">R$ 0,00</p></div>
+        <div class="card">
+            <h2>💎 Renda Extra</h2>
+            <p id="r-extra">R$ 0,00</p>
+            <div class="barra-progresso"><div id="f-extra" class="fill"></div></div>
+        </div>
+        <div class="card">
+            <h2>💰 Salário (01-15)</h2>
+            <p id="r-salario">R$ 0,00</p>
+            <div class="barra-progresso"><div id="f-salario" class="fill"></div></div>
+        </div>
+        <div class="card">
+            <h2>📅 Adiantam. (16-31)</h2>
+            <p id="r-adiant">R$ 0,00</p>
+            <div class="barra-progresso"><div id="f-adiant" class="fill"></div></div>
+        </div>
+        <div class="card" id="card-cartao-resumo">
+            <h2>💳 Cartão de Crédito</h2>
+            <p class="card-info-linha">Total: <span id="c-total-val">R$ 0,00</span></p>
+            <p class="card-info-linha label-utilizado">Uso: <span id="c-uso-val">R$ 0,00</span></p>
+            <p class="card-info-linha label-disponivel">Disp: <span id="c-disp-val">R$ 0,00</span></p>
+            <div class="barra-progresso"><div id="f-cartao" class="fill"></div></div>
+        </div>
       </div>
-      <canvas id="meuGrafico" style="margin-top:30px;"></canvas>
+      <center><canvas id="meuGrafico" style="max-width:320px; margin-top:30px;"></canvas></center>
     </main>
 
     <main id="aba-receitas" class="tab-content">
@@ -92,33 +114,28 @@
         <button onclick="abrirModal('r_extras')" class="btn-action" style="background:var(--green)">+ RENDA EXTRA</button>
       </div>
     </main>
-    
+
     <main id="aba-despesas" class="tab-content">
-      <div class="secao">
-        <h3>Minhas Contas</h3>
-        <div id="l-contas"></div>
-        <button onclick="abrirModal('contas')" class="btn-action" style="background:var(--orange)">+ NOVA CONTA (VENCIMENTO)</button>
-      </div>
+      <div class="secao"><h3>Minhas Contas</h3><div id="l-contas"></div><button onclick="abrirModal('contas')" class="btn-action" style="background:var(--orange)">+ NOVA CONTA</button></div>
     </main>
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
-        <label>Limite do Cartão:</label>
+        <label>Limite Total do Cartão:</label>
         <input type="number" id="c-limite" onchange="salvarLimite(this.value)">
-        <h3>Antecipações</h3>
+        <h3>Antecipações Realizadas</h3>
         <div id="l-pgs"></div>
         <button onclick="abrirModal('pgs')" class="btn-action" style="background:var(--blue)">+ ANTECIPAR FATURA</button>
       </div>
     </main>
-    <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); width:100%; margin-top:20px;">SAIR DO SISTEMA</button>
   </div>
 
   <div id="modal-input" class="modal"><div class="modal-content">
     <h3 id="input-titulo">Novo Registro</h3>
-    <input type="text" id="in-desc" placeholder="Descrição">
+    <div id="div-desc"><input type="text" id="in-desc" placeholder="Descrição"></div>
     <input type="number" id="in-valor" placeholder="Valor R$">
     <input type="date" id="in-data">
-    <button class="btn-action" style="background:var(--blue)" onclick="salvarNovo()">SALVAR AGORA</button>
+    <button class="btn-action" style="background:var(--blue)" onclick="salvarNovo()">SALVAR</button>
     <button class="btn-action" style="background:#444" onclick="fecharModais()">CANCELAR</button>
   </div></div>
 
@@ -128,7 +145,6 @@
     <button class="btn-action" style="background:var(--blue)" onclick="processarPagamento('debito')">DÉBITO (SALÁRIO/AD.)</button>
     <button class="btn-action" style="background:var(--green)" onclick="processarPagamento('extra')">RENDA EXTRA</button>
     <button id="btn-pg-credito" class="btn-action" style="background:var(--red)" onclick="processarPagamento('credito')">CARTÃO DE CRÉDITO</button>
-    <button class="btn-action" style="background:#444" onclick="fecharModais()">CANCELAR</button>
   </div></div>
 
   <script>
@@ -167,15 +183,13 @@
       renderizar();
     }
 
-    async function save() { 
-        await db.collection("usuarios").doc(uid).set(dados); 
-        renderizar(); 
-    }
+    async function save() { await db.collection("usuarios").doc(uid).set(dados); renderizar(); }
+    function salvarLimite(v) { if(!dados.config) dados.config = {}; dados.config.limite = parseFloat(v) || 0; save(); }
 
-    function salvarLimite(v) {
-        if(!dados.config) dados.config = {};
-        dados.config.limite = parseFloat(v) || 0;
-        save();
+    function getCor(percent) {
+        if(percent < 60) return 'var(--green)';
+        if(percent < 80) return 'var(--orange)';
+        return 'var(--red)';
     }
 
     function renderizar() {
@@ -186,33 +200,55 @@
       let bSalario = d.r_fixas.filter(r => !r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
       let bAdiant = d.r_fixas.filter(r => r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
       let bExtra = d.r_extras.reduce((a,b)=>a+b.v,0);
+      let totalRenda = bSalario + bAdiant + bExtra;
 
-      let dSalario = 0, dAdiant = 0, dExtra = 0, fatura = 0;
+      let dSalario = 0, dAdiant = 0, dExtra = 0, fatura = 0, totalDespesa = 0;
 
       d.contas.forEach(c => {
-        if(!c.pago) { if(c.fonte === 'credito') fatura += c.v; return; }
-        if(c.fonte === 'debito') {
-            let dia = parseInt(c.data.split('-')[2]);
-            if(dia <= 15) dSalario += c.v; else dAdiant += c.v;
-        } else if(c.fonte === 'extra') dExtra += c.v;
-        else if(c.fonte === 'credito') fatura += c.v;
+        if(c.pago) {
+            totalDespesa += c.v;
+            if(c.fonte === 'debito') {
+                let dia = parseInt(c.data.split('-')[2]);
+                if(dia <= 15) dSalario += c.v; else dAdiant += c.v;
+            } else if(c.fonte === 'extra') dExtra += c.v;
+            else if(c.fonte === 'credito') fatura += c.v;
+        } else if(c.fonte === 'credito') {
+             fatura += c.v;
+        }
       });
 
       d.pgs.forEach(p => {
-        fatura -= p.v;
-        if(p.fonte === 'debito') {
-            let dia = parseInt(p.data.split('-')[2]);
-            if(dia <= 15) dSalario += p.v; else dAdiant += p.v;
-        } else if(p.fonte === 'extra') dExtra += p.v;
+          fatura -= p.v;
+          if(p.fonte === 'debito') {
+              let dia = parseInt(p.data.split('-')[2]);
+              if(dia <= 15) dSalario += p.v; else dAdiant += p.v;
+          } else if(p.fonte === 'extra') dExtra += p.v;
       });
 
+      const lim = dados.config?.limite || 0;
+      
+      // Update Cards
       document.getElementById('r-extra').innerText = fmt(bExtra - dExtra);
+      document.getElementById('f-extra').style.width = Math.min((dExtra/(bExtra||1))*100, 100) + "%";
+      document.getElementById('f-extra').style.background = getCor((dExtra/(bExtra||1))*100);
+
       document.getElementById('r-salario').innerText = fmt(bSalario - dSalario);
+      document.getElementById('f-salario').style.width = Math.min((dSalario/(bSalario||1))*100, 100) + "%";
+      document.getElementById('f-salario').style.background = getCor((dSalario/(bSalario||1))*100);
+
       document.getElementById('r-adiant').innerText = fmt(bAdiant - dAdiant);
-      document.getElementById('r-cartao').innerText = fmt(fatura);
+      document.getElementById('f-adiant').style.width = Math.min((dAdiant/(bAdiant||1))*100, 100) + "%";
+      document.getElementById('f-adiant').style.background = getCor((dAdiant/(bAdiant||1))*100);
+
+      // Card Cartão Tamanho Normal
+      document.getElementById('c-total-val').innerText = fmt(lim);
+      document.getElementById('c-uso-val').innerText = fmt(fatura);
+      document.getElementById('c-disp-val').innerText = fmt(lim - fatura);
+      document.getElementById('f-cartao').style.width = Math.min((fatura/(lim||1))*100, 100) + "%";
+      document.getElementById('f-cartao').style.background = getCor((fatura/(lim||1))*100);
 
       desenharListas(d);
-      atualizarGrafico(bExtra-dExtra, bSalario-dSalario, bAdiant-dAdiant);
+      atualizarGrafico(totalRenda, totalDespesa);
     }
 
     function desenharListas(d) {
@@ -220,28 +256,10 @@
       [...d.r_fixas, ...d.r_extras].forEach((item) => {
         lRec.innerHTML += `<div class="linha-item"><div style="flex:1"><b>${item.d}</b></div><span>${fmt(item.v)}</span></div>`;
       });
-
       const lContas = document.getElementById('l-contas'); lContas.innerHTML = "";
-      const hoje = new Date().toISOString().split('T')[0];
-      
       d.contas.forEach((c, i) => {
-        let status = "";
-        if(!c.pago) {
-            if(c.data < hoje) status = "vencida";
-            else if(c.data <= somarDias(hoje, 2)) status = "alerta";
-        }
-        lContas.innerHTML += `
-          <div class="linha-item">
-            <div class="check-pg ${c.pago?'pago':''}" onclick="tentarPagar(${i})"></div>
-            <div style="flex:1">
-              <b class="${status}">${c.d}</b><br>
-              <small class="${status}">${c.data} ${c.fonte?('| '+c.fonte):''}</small>
-            </div>
-            <span>${fmt(c.v)}</span>
-            <button onclick="excluir('contas', ${i})" style="border:none; background:none; color:var(--red); padding:10px;">X</button>
-          </div>`;
+        lContas.innerHTML += `<div class="linha-item"><div class="check-pg ${c.pago?'pago':''}" onclick="tentarPagar(${i})"></div><div style="flex:1"><b>${c.d}</b><br><small>${c.data}</small></div><span>${fmt(c.v)}</span><button onclick="excluir('contas', ${i})" style="border:none; background:none; color:var(--red); padding:10px;">X</button></div>`;
       });
-
       const lPgs = document.getElementById('l-pgs'); lPgs.innerHTML = "";
       d.pgs.forEach((p, i) => {
           lPgs.innerHTML += `<div class="linha-item"><div style="flex:1"><b>${p.d}</b></div><span>${fmt(p.v)}</span><button onclick="excluir('pgs', ${i})" style="border:none; background:none; color:var(--red); padding:10px;">X</button></div>`;
@@ -251,25 +269,26 @@
     function abrirModal(t) {
       pendente = { tipo: t };
       document.getElementById('in-valor').value = "";
-      document.getElementById('in-desc').value = "";
       document.getElementById('in-data').value = new Date().toISOString().split('T')[0];
+      const divDesc = document.getElementById('div-desc');
+      if(t === 'pgs') { divDesc.style.display = 'none'; pendente.d = "Antecipação da Fatura"; }
+      else { divDesc.style.display = 'block'; document.getElementById('in-desc').value = ""; }
       document.getElementById('modal-input').style.display = 'flex';
     }
 
     function salvarNovo() {
-      const v = parseFloat(document.getElementById('in-valor').value), d = document.getElementById('in-desc').value, dt = document.getElementById('in-data').value;
-      if(!v || !d) return alert("Preencha Valor e Descrição");
-      
+      const v = parseFloat(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value;
+      const d = pendente.tipo === 'pgs' ? pendente.d : document.getElementById('in-desc').value;
+      if(!v || !d) return alert("Preencha os campos");
       const mes = document.getElementById("mes_select").value;
       if(pendente.tipo === 'pgs') {
-          pendente.v = v; pendente.d = d; pendente.data = dt;
+          pendente.v = v; pendente.data = dt;
           document.getElementById('modal-input').style.display = 'none';
           document.getElementById('btn-pg-credito').style.display = 'none';
           document.getElementById('modal-pagar').style.display = 'flex';
       } else {
           dados[mes][pendente.tipo].push({ d, v, data: dt, pago: false });
-          fecharModais(); 
-          save();
+          fecharModais(); save();
       }
     }
 
@@ -277,7 +296,6 @@
       const mes = document.getElementById("mes_select").value;
       const conta = dados[mes].contas[index];
       if(conta.pago) return;
-      
       pendente = { tipo: 'contas', index: index, v: conta.v, d: conta.d, data: conta.data };
       document.getElementById('pg-info').innerText = `${conta.d} - ${fmt(conta.v)}`;
       document.getElementById('btn-pg-credito').style.display = 'block';
@@ -289,22 +307,13 @@
       if(pendente.tipo === 'contas') {
           dados[mes].contas[pendente.index].pago = true;
           dados[mes].contas[pendente.index].fonte = fonte;
-      } else if(pendente.tipo === 'pgs') {
+      } else {
           dados[mes].pgs.push({ d: pendente.d, v: pendente.v, data: pendente.data, fonte: fonte });
       }
       fecharModais(); save();
     }
 
-    function somarDias(data, dias) {
-        let r = new Date(data); r.setDate(r.getDate() + dias);
-        return r.toISOString().split('T')[0];
-    }
-
-    function fecharModais() { 
-        document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); 
-        pendente = {};
-    }
-
+    function fecharModais() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
     function excluir(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
 
     function popMeses() {
@@ -321,13 +330,13 @@
       document.getElementById('aba-'+n).classList.add('active'); e.target.classList.add('active');
     }
 
-    function atualizarGrafico(e, s, a) {
+    function atualizarGrafico(renda, despesa) {
       const ctx = document.getElementById('meuGrafico').getContext('2d');
       if(chartInstancia) chartInstancia.destroy();
       chartInstancia = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: ['Extra', 'Salário', 'Adiant.'], datasets: [{ data: [e, s, a], backgroundColor: ['#107c10', '#0078d4', '#ffb900'], borderWidth: 0 }] },
-        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+        data: { labels: ['Renda Total', 'Gasto Total'], datasets: [{ data: [renda, despesa], backgroundColor: ['#107c10', '#d13438'], borderWidth: 0 }] },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 12 } } } } }
       });
     }
   </script>
