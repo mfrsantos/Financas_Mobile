@@ -3,63 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v4.9 - ERP</title>
+  <title>MS Finanças v6.0 - ERP & Analytics</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root { --blue: #0078d4; --green: #107c10; --yellow: #ffb900; --orange: #d83b01; --red: #d13438; --bg: #1c1c1c; --card-bg: #2b2b2b; --border: #3c3c3c; }
     * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; padding-bottom: 20px; }
+    body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; padding-bottom: 30px; }
     
-    /* Login */
     #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
     .login-box { background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--blue); text-align: center; }
     .login-box input { width: 100%; padding: 12px; margin: 8px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; }
 
-    /* Layout Principal */
     #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
     .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.65rem; transition: 0.2s; }
+    .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.6rem; }
     .tab-btn.active { background: #323232; color: var(--blue); }
 
-    /* Cards Resumo */
     .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; height: 90px; display: flex; flex-direction: column; justify-content: center; }
-    .card h2 { margin: 0; font-size: 0.55rem; color: #b0b0b0; text-transform: uppercase; letter-spacing: 1px; }
-    .card p { margin: 4px 0; font-size: 1rem; font-weight: 800; color: #fff; }
+    .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; height: 100px; display: flex; flex-direction: column; justify-content: center; }
+    .card h2 { margin: 0; font-size: 0.55rem; color: #b0b0b0; text-transform: uppercase; margin-bottom: 5px; }
+    .card p { margin: 0; font-size: 0.95rem; font-weight: 800; }
     .barra-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #333; }
-    .barra-fill { height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+    .barra-fill { height: 100%; width: 0%; transition: width 0.8s ease; }
 
-    /* Modais */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-    .modal-content { background: var(--card-bg); border: 2px solid var(--blue); padding: 25px; border-radius: 20px; width: 90%; max-width: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .modal-content h3 { margin: 0 0 15px 0; color: var(--blue); font-size: 1.2rem; }
-    .modal-content input { width: 100%; padding: 14px; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 10px; margin-bottom: 12px; font-size: 1.1rem; }
-    .modal-btn { width: 100%; padding: 15px; margin: 6px 0; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
-    .modal-btn:active { transform: scale(0.98); opacity: 0.8; }
+    .modal-content { background: var(--card-bg); border: 2px solid var(--blue); padding: 25px; border-radius: 20px; width: 90%; max-width: 340px; }
+    .modal-btn { width: 100%; padding: 15px; margin: 6px 0; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
 
-    /* Listas e Elementos */
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .linha-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #383838; gap: 12px; font-size: 0.9rem; }
-    .btn-action { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; color: white; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-    .btn-del { background: var(--red); border: none; color: white; border-radius: 8px; width: 32px; height: 32px; font-weight: bold; flex-shrink: 0; }
-    .pago-texto { text-decoration: line-through; color: #666; opacity: 0.6; }
+    .linha-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #383838; gap: 10px; font-size: 0.85rem; }
+    .btn-action { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; color: white; cursor: pointer; margin-top: 10px; }
+    .btn-del { background: var(--red); border: none; color: white; border-radius: 8px; width: 30px; height: 30px; font-weight: bold; }
+    .pago-texto { text-decoration: line-through; color: #666; }
     
     .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 10px; width: 100%; font-size: 1rem; appearance: none; text-align: center; }
+    .tab-content.active { display: block; }
+    select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 10px; width: 100%; text-align: center; }
+    
+    .chart-container { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-top: 15px; border: 1px solid var(--border); display: flex; justify-content: center; }
   </style>
 </head>
 <body>
 
   <div id="tela-login">
     <div class="login-box">
-      <h2 style="color:var(--blue); margin-bottom:20px; letter-spacing: 2px;">MS FINANÇAS</h2>
+      <h2 style="color:var(--blue); margin-bottom:20px;">MS FINANÇAS</h2>
       <input type="email" id="l-email" placeholder="E-mail">
       <input type="password" id="l-pass" placeholder="Senha">
       <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">ENTRAR</button>
@@ -72,7 +68,7 @@
     <div class="modal-content">
       <h3 id="input-titulo">Novo Registro</h3>
       <input type="text" id="in-desc" placeholder="Descrição">
-      <input type="number" step="0.01" id="in-valor" placeholder="0,00" inputmode="decimal">
+      <input type="number" step="0.01" id="in-valor" placeholder="0.00" inputmode="decimal">
       <button class="modal-btn" style="background:var(--blue)" onclick="confirmarInput()">PROSSEGUIR</button>
       <button class="modal-btn" style="background:#444" onclick="fecharModais()">CANCELAR</button>
     </div>
@@ -80,30 +76,29 @@
 
   <div id="modal-fonte" class="modal">
     <div class="modal-content">
-      <h3 style="color:var(--yellow)">Forma de Pagamento</h3>
-      <p id="info-pagamento" style="font-size:0.9rem; color:#aaa; margin-bottom:20px;"></p>
-      <button id="btn-modal-cartao" class="modal-btn" style="background:var(--red)" onclick="setFonte('cartao')">💳 CARTÃO DE CRÉDITO</button>
-      <button class="modal-btn" style="background:var(--blue)" onclick="setFonte('auto')">🏦 DÉBITO EM CONTA</button>
-      <button class="modal-btn" style="background:var(--green)" onclick="setFonte('extra')">💎 SALDO EXTRA</button>
+      <h3 style="color:var(--yellow)">Pagar via:</h3>
+      <p id="info-pagamento" style="font-size:0.85rem; color:#aaa; margin-bottom:20px;"></p>
+      <button id="btn-modal-cartao" class="modal-btn" style="background:var(--red)" onclick="setFonte('cartao')">💳 CARTÃO</button>
+      <button class="modal-btn" style="background:var(--blue)" onclick="setFonte('auto')">🏦 DÉBITO</button>
+      <button class="modal-btn" style="background:var(--green)" onclick="setFonte('extra')">💎 EXTRA</button>
       <button class="modal-btn" style="background:#444" onclick="fecharModais()">CANCELAR</button>
     </div>
   </div>
 
   <div id="app-content">
-    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 5px;">
-      <span style="color:var(--blue); font-weight:800; font-size:1.1rem;">MS FINANÇAS</span>
-      <button onclick="sair()" style="background:none; border:none; color:var(--red); font-weight:bold; font-size:0.9rem;">SAIR</button>
+    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <span style="color:var(--blue); font-weight:800; font-size:1rem;">MS FINANÇAS</span>
+      <button onclick="sair()" style="background:none; border:none; color:var(--red); font-weight:bold;">SAIR</button>
     </header>
 
-    <div style="margin-bottom:20px;">
-      <select id="mes_select" onchange="renderizar();"></select>
-    </div>
+    <select id="mes_select" onchange="renderizar();" style="margin-bottom:15px;"></select>
 
     <nav class="tab-bar">
       <button class="tab-btn active" onclick="tab(event, 'resumo')">RESUMO</button>
       <button class="tab-btn" onclick="tab(event, 'receitas')">RECEITAS</button>
       <button class="tab-btn" onclick="tab(event, 'despesas')">DESPESAS</button>
       <button class="tab-btn" onclick="tab(event, 'cartao')">CARTÃO</button>
+      <button class="tab-btn" onclick="tab(event, 'relatorio')">PDF</button>
     </nav>
 
     <main id="aba-resumo" class="tab-content active">
@@ -111,32 +106,42 @@
         <div class="card"><h2>💎 Extra</h2><p id="r-extra">R$ 0,00</p><div class="barra-bg"><div id="b-extra" class="barra-fill"></div></div></div>
         <div class="card"><h2>📅 Adiantam.</h2><p id="r-adiant">R$ 0,00</p><div class="barra-bg"><div id="b-adiant" class="barra-fill"></div></div></div>
         <div class="card"><h2>💰 Salário</h2><p id="r-salario">R$ 0,00</p><div class="barra-bg"><div id="b-salario" class="barra-fill"></div></div></div>
-        <div class="card"><h2>💳 Cartão</h2><p id="r-cartao">R$ 0,00</p><div class="barra-bg"><div id="b-cartao" class="barra-fill"></div></div></div>
+        <div class="card"><h2>💳 Cartão</h2><div id="r-cartao"></div><div class="barra-bg"><div id="b-cartao" class="barra-fill"></div></div></div>
+      </div>
+      
+      <div class="chart-container">
+        <canvas id="meuGrafico" style="max-width: 300px; max-height: 300px;"></canvas>
       </div>
     </main>
 
     <main id="aba-receitas" class="tab-content">
-      <div class="secao">
-        <div id="l-receitas"></div>
-        <button onclick="abrirInput('receitas')" class="btn-action" style="background:var(--green)">+ ADICIONAR RECEITA</button>
-      </div>
+      <div class="secao"><div id="l-receitas"></div><button onclick="abrirInput('receitas')" class="btn-action" style="background:var(--green)">+ RECEITA</button></div>
     </main>
 
     <main id="aba-despesas" class="tab-content">
-      <div class="secao"><h3>Contas Fixas</h3><div id="l-fixas"></div><button onclick="abrirInput('fixas')" class="btn-action" style="background:var(--blue)">+ CONTA FIXA</button></div>
-      <div class="secao"><h3>Gastos Variáveis</h3><div id="l-vars"></div><button onclick="abrirInput('vars')" class="btn-action" style="background:var(--yellow); color:#000">+ GASTO VARIÁVEL</button></div>
+      <div class="secao"><h3>Fixas</h3><div id="l-fixas"></div><button onclick="abrirInput('fixas')" class="btn-action" style="background:var(--blue)">+ FIXA</button></div>
+      <div class="secao"><h3>Variáveis</h3><div id="l-vars"></div><button onclick="abrirInput('vars')" class="btn-action" style="background:var(--yellow); color:#000">+ VARIÁVEL</button></div>
     </main>
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
-        <label style="font-size:0.75rem; color:#888">Limite Total do Cartão:</label>
-        <input type="number" step="0.01" id="c-limite" style="width:100%; background:#1a1a1a; color:white; border:1px solid var(--border); padding:12px; border-radius:10px; margin-top:8px;" onchange="dados.config.limite=parseFloat(this.value);save()">
+        <label style="font-size:0.7rem; color:#888">Limite do Cartão:</label>
+        <input type="number" step="0.01" id="c-limite" style="width:100%; background:#1a1a1a; color:white; border:1px solid var(--border); padding:10px; border-radius:8px; margin-top:5px;" onchange="dados.config.limite=parseFloat(this.value);save()">
       </div>
-      <div class="secao"><h3>Pagamentos de Fatura</h3><div id="l-pgs"></div><button onclick="abrirInput('pgs')" class="btn-action" style="background:var(--blue)">+ REGISTRAR PAGAMENTO</button></div>
+      <div class="secao"><h3>Pagamentos de Fatura</h3><div id="l-pgs"></div><button onclick="abrirInput('pgs')" class="btn-action" style="background:var(--blue)">+ PAGAR FATURA</button></div>
+    </main>
+
+    <main id="aba-relatorio" class="tab-content">
+      <div class="secao" style="text-align: center;">
+        <h3>Relatórios Oficiais</h3>
+        <p style="font-size: 0.8rem; color: #888;">Gere um PDF detalhado do mês selecionado.</p>
+        <button class="btn-action" style="background:var(--orange)" onclick="gerarPDF()">GERAR RELATÓRIO PDF</button>
+      </div>
     </main>
   </div>
 
   <script>
+    // CONFIGURAÇÃO FIREBASE
     const firebaseConfig = { apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0", authDomain: "ms-financas.firebaseapp.com", projectId: "ms-financas", storageBucket: "ms-financas.firebasestorage.app", messagingSenderId: "825396392769", appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -144,6 +149,7 @@
     
     let dados = {};
     let pendente = { tipo: '', i: 0, v: 0, d: '' };
+    let chartInstancia = null;
     const fmt = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     auth.onAuthStateChanged(user => {
@@ -152,12 +158,7 @@
       if(user) sync(user.uid);
     });
 
-    async function autenticar(modo) {
-      const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
-      try { modo === 'login' ? await auth.signInWithEmailAndPassword(e, p) : await auth.createUserWithEmailAndPassword(e, p);
-      } catch (err) { document.getElementById('msg-login').innerText = "Erro: " + err.message; }
-    }
-
+    // LÓGICA DE SINCRONIZAÇÃO E SALVAMENTO
     function sync(uid) {
       db.collection("usuarios").doc(uid).onSnapshot(doc => {
         if(doc.exists) {
@@ -165,178 +166,168 @@
           if(!dados.config) dados.config = { limite: 2000 };
           document.getElementById('c-limite').value = dados.config.limite;
           popMeses(); renderizar();
-        } else { 
-          dados = init(); 
-          save(); 
-        }
+        } else { dados = init(); save(); }
       });
     }
-
     async function save() { await db.collection("usuarios").doc(auth.currentUser.uid).set(dados); }
+    async function autenticar(modo) {
+      const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
+      try { modo === 'login' ? await auth.signInWithEmailAndPassword(e, p) : await auth.createUserWithEmailAndPassword(e, p);
+      } catch (err) { document.getElementById('msg-login').innerText = err.message; }
+    }
 
     function init() {
       const b = { config: { limite: 2000 } };
-      for(let m=1; m<=12; m++) {
-        b[`2026-${String(m).padStart(2,'0')}`] = { 
-          receitas: [{desc:'Adiantamento', valor:0},{desc:'Salário', valor:0}], 
-          fixas: [], variaveis: [], pgs: [] 
-        };
-      }
+      for(let m=1; m<=12; m++) b[`2026-${String(m).padStart(2,'0')}`] = { receitas: [{desc:'Adiantamento', valor:0},{desc:'Salário', valor:0}], fixas: [], variaveis: [], pgs: [] };
       return b;
     }
 
-    // CONTROLE DE MODAIS
-    function abrirInput(tipo) {
-      pendente.tipo = tipo;
-      const dInput = document.getElementById('in-desc');
-      dInput.style.display = tipo === 'pgs' ? 'none' : 'block';
-      dInput.value = "";
-      document.getElementById('in-valor').value = "";
-      document.getElementById('modal-input').style.display = 'flex';
-    }
-
-    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
-
-    function confirmarInput() {
-      const d = document.getElementById('in-desc').value || "Pagamento";
-      const v = parseFloat(document.getElementById('in-valor').value);
-      const mes = document.getElementById("mes_select").value;
-      if(isNaN(v) || v < 0) return alert("Por favor, insira um valor válido.");
-
-      pendente.d = d; pendente.v = v;
-      document.getElementById('modal-input').style.display = 'none';
-
-      if(pendente.tipo === 'receitas') { 
-        dados[mes].receitas.push({desc: d, valor: v}); 
-        save(); fecharModais(); 
-      } else if(pendente.tipo === 'fixas') { 
-        dados[mes].fixas.push({desc: d, valor: v, pago: false}); 
-        save(); fecharModais(); 
-      } else {
-        document.getElementById('btn-modal-cartao').style.display = pendente.tipo === 'pgs' ? 'none' : 'block';
-        document.getElementById('info-pagamento').innerText = `${d}: ${fmt(v)}`;
-        document.getElementById('modal-fonte').style.display = 'flex';
-      }
-    }
-
-    function setFonte(f) {
-      const mes = document.getElementById("mes_select").value;
-      let fReal = f === 'auto' ? (new Date().getDate() <= 15 ? 'adiantamento' : 'salario') : f;
-      
-      if(pendente.tipo === 'pgs') {
-        if(!dados[mes].pgs) dados[mes].pgs = [];
-        dados[mes].pgs.push({valor: pendente.v, fonte: fReal});
-      } else if(pendente.tipo === 'vars') {
-        dados[mes].variaveis.push({desc: pendente.d, valor: pendente.v, meio: fReal});
-      } else if(pendente.tipo === 'fixas') {
-        dados[mes].fixas[pendente.i].pago = true;
-        dados[mes].fixas[pendente.i].meio = fReal;
-      }
-      fecharModais(); save();
-    }
-
-    // RENDERIZAÇÃO
-    function renderizar() {
-      const mes = document.getElementById("mes_select").value || "2026-03";
-      if(!dados[mes]) return;
-      const info = dados[mes];
-
-      // Receitas
-      document.getElementById("l-receitas").innerHTML = (info.receitas || []).map((r, i) => `
-        <div class="linha-item">
-          <b style="flex:1">${r.desc || r.descrição}</b> 
-          <input type="number" step="0.01" style="width:100px" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);save()">
-        </div>`).join('');
-
-      // Fixas
-      document.getElementById("l-fixas").innerHTML = (info.fixas || []).map((f, i) => `
-        <div class="linha-item">
-          <input type="checkbox" style="width:26px;height:26px" ${f.pago?'checked':''} onchange="if(this.checked){pendente={tipo:'fixas',i:${i}};document.getElementById('info-pagamento').innerText='Pagar: '+dados['${mes}'].fixas[${i}].desc;document.getElementById('modal-fonte').style.display='flex';document.getElementById('btn-modal-cartao').style.display='block';}else{dados['${mes}'].fixas[${i}].pago=false;save()}">
-          <span style="flex:1" class="${f.pago?'pago-texto':''}">${f.desc} - ${fmt(f.valor)}</span>
-          <button class="btn-del" onclick="del('fixas',${i})">×</button>
-        </div>`).join('');
-
-      // Variáveis
-      document.getElementById("l-vars").innerHTML = (info.variaveis || []).map((v, i) => `
-        <div class="linha-item">
-          <span style="flex:1">${v.desc} - ${fmt(v.valor)} <br><small style="color:var(--blue)">via ${v.meio}</small></span>
-          <button class="btn-del" onclick="del('variaveis',${i})">×</button>
-        </div>`).join('');
-
-      // Pagamentos Fatura
-      document.getElementById("l-pgs").innerHTML = (info.pgs || []).map((p, i) => `
-        <div class="linha-item">
-          <span style="flex:1">Fatura via ${p.fonte} - ${fmt(p.valor)}</span>
-          <button class="btn-del" onclick="del('pgs',${i})">×</button>
-        </div>`).join('');
-
-      resumo(mes);
-    }
-
-    function resumo(mes) {
-      const info = dados[mes];
-      let vEx=0, vAd=0, vSa=0, pEx=0, pAd=0, pSa=0, gCa=0, pgF=0;
-
-      (info.receitas || []).forEach(r => { 
-        const n = (r.desc || r.descrição || "").toLowerCase(); 
-        if(n.includes("adiant")) vAd += r.valor; else if(n.includes("salario")) vSa += r.valor; else vEx += r.valor; 
-      });
-
-      (info.fixas || []).forEach(f => { 
-        if(f.pago) { 
-          if(f.meio === 'extra') pEx += f.valor; 
-          else if(f.meio === 'adiantamento') pAd += f.valor; 
-          else if(f.meio === 'salario') pSa += f.valor; 
-          else if(f.meio === 'cartao') gCa += f.valor;
-        } 
-      });
-
-      (info.variaveis || []).forEach(v => { 
-        if(v.meio === 'cartao') gCa += v.valor; 
-        else if(v.meio === 'extra') pEx += v.valor; 
-        else if(v.meio === 'adiantamento') pAd += v.valor; 
-        else pSa += v.valor; 
-      });
-
-      (info.pgs || []).forEach(p => { 
-        pgF += p.valor; 
-        if(p.fonte === 'extra') pEx += p.valor; 
-        else if(p.fonte === 'adiantamento') pAd += p.valor; 
-        else pSa += p.valor; 
-      });
-
-      const usado = gCa - pgF;
-      document.getElementById("r-extra").innerText = fmt(vEx - pEx);
-      document.getElementById("r-adiant").innerText = fmt(vAd - pAd);
-      document.getElementById("r-salario").innerText = fmt(vSa - pSa);
-      document.getElementById("r-cartao").innerText = fmt(usado);
-
-      const pb = (id, g, t) => { 
-        const el = document.getElementById(id); 
-        const p = t > 0 ? Math.min((g/t)*100, 100) : 0; 
-        el.style.width = p + "%"; 
-        el.style.backgroundColor = p <= 50 ? "var(--green)" : p <= 80 ? "var(--orange)" : "var(--red)"; 
-      };
-      pb("b-extra", pEx, vEx); pb("b-adiant", pAd, vAd); pb("b-salario", pSa, vSa); pb("b-cartao", usado, dados.config.limite);
-    }
-
-    function popMeses() {
-      const s = document.getElementById("mes_select"); if(s.options.length > 0) return;
-      const nomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-      nomes.forEach((m, i) => {
-        let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
-        if(i+1 === new Date().getMonth()+1) o.selected = true; s.appendChild(o);
-      });
-    }
-
+    // INTERFACE
     function tab(e, n) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.getElementById(`aba-${n}`).classList.add('active'); e.currentTarget.classList.add('active');
     }
 
-    function del(t, i) { if(confirm("Deseja realmente apagar este registro?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
-    function sair() { if(confirm("Deseja sair do sistema?")) auth.signOut(); }
+    function popMeses() {
+      const s = document.getElementById("mes_select"); if(s.options.length > 0) return;
+      ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m, i) => {
+        let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
+        if(i+1 === new Date().getMonth()+1) o.selected = true; s.appendChild(o);
+      });
+    }
+
+    // MODAIS E INPUTS
+    function abrirInput(tipo) {
+      pendente.tipo = tipo;
+      document.getElementById('in-desc').style.display = tipo === 'pgs' ? 'none' : 'block';
+      document.getElementById('in-desc').value = ""; document.getElementById('in-valor').value = "";
+      document.getElementById('modal-input').style.display = 'flex';
+    }
+    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+    function confirmarInput() {
+      const d = document.getElementById('in-desc').value || "Pagamento";
+      const v = parseFloat(document.getElementById('in-valor').value);
+      const mes = document.getElementById("mes_select").value;
+      if(isNaN(v)) return;
+      pendente.d = d; pendente.v = v;
+      document.getElementById('modal-input').style.display = 'none';
+      if(pendente.tipo === 'receitas') { dados[mes].receitas.push({desc:d, valor:v}); save(); fecharModais(); }
+      else if(pendente.tipo === 'fixas') { dados[mes].fixas.push({desc:d, valor:v, pago:false}); save(); fecharModais(); }
+      else { document.getElementById('info-pagamento').innerText = `${d}: ${fmt(v)}`; document.getElementById('modal-fonte').style.display = 'flex'; }
+    }
+    function setFonte(f) {
+      const mes = document.getElementById("mes_select").value;
+      let fReal = f === 'auto' ? (new Date().getDate() <= 15 ? 'adiantamento' : 'salario') : f;
+      if(pendente.tipo === 'pgs') dados[mes].pgs.push({valor: pendente.v, fonte: fReal});
+      else if(pendente.tipo === 'vars') dados[mes].variaveis.push({desc: pendente.d, valor: pendente.v, meio: fReal});
+      else if(pendente.tipo === 'fixas') { dados[mes].fixas[pendente.i].pago = true; dados[mes].fixas[pendente.i].meio = fReal; }
+      fecharModais(); save();
+    }
+
+    // RENDER E CÁLCULOS
+    function renderizar() {
+      const mes = document.getElementById("mes_select").value || "2026-03";
+      const info = dados[mes]; if(!info) return;
+
+      document.getElementById("l-receitas").innerHTML = (info.receitas || []).map((r, i) => `<div class="linha-item"><b style="flex:1">${r.desc}</b> <input type="number" step="0.01" style="width:90px" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);save()"></div>`).join('');
+      document.getElementById("l-fixas").innerHTML = (info.fixas || []).map((f, i) => `<div class="linha-item"><input type="checkbox" style="width:24px;height:24px" ${f.pago?'checked':''} onchange="if(this.checked){pendente={tipo:'fixas',i:${i}};document.getElementById('modal-fonte').style.display='flex';}else{dados['${mes}'].fixas[${i}].pago=false;save()}"><span style="flex:1" class="${f.pago?'pago-texto':''}">${f.desc} - ${fmt(f.valor)}</span><button class="btn-del" onclick="del('fixas',${i})">×</button></div>`).join('');
+      document.getElementById("l-vars").innerHTML = (info.variaveis || []).map((v, i) => `<div class="linha-item"><span style="flex:1">${v.desc} - ${fmt(v.valor)} (${v.meio})</span><button class="btn-del" onclick="del('variaveis',${i})">×</button></div>`).join('');
+      document.getElementById("l-pgs").innerHTML = (info.pgs || []).map((p, i) => `<div class="linha-item"><span style="flex:1">Fatura via ${p.fonte} - ${fmt(p.valor)}</span><button class="btn-del" onclick="del('pgs',${i})">×</button></div>`).join('');
+
+      resumo(mes);
+    }
+
+    function resumo(mes) {
+      const info = dados[mes];
+      let vEx=0, vAd=0, vSa=0, pEx=0, pAd=0, pSa=0, gCa=0, pgF=0, dFix=0, dVar=0;
+
+      (info.receitas || []).forEach(r => { 
+        const n = (r.desc || "").toLowerCase().trim();
+        if(n === "adiantamento" || n.includes("adiantam")) vAd += r.valor;
+        else if(n === "salario" || n === "salário") vSa += r.valor;
+        else vEx += r.valor;
+      });
+
+      (info.fixas || []).forEach(f => { 
+        dFix += f.valor;
+        if(f.pago) { 
+          if(f.meio === 'extra') pEx += f.valor; else if(f.meio === 'adiantamento') pAd += f.valor; 
+          else if(f.meio === 'salario') pSa += f.valor; else if(f.meio === 'cartao') gCa += f.valor;
+        }
+      });
+
+      (info.variaveis || []).forEach(v => { 
+        dVar += v.valor;
+        if(v.meio === 'cartao') gCa += v.valor; else if(v.meio === 'extra') pEx += v.valor; 
+        else if(v.meio === 'adiantamento') pAd += v.valor; else pSa += v.valor; 
+      });
+
+      (info.pgs || []).forEach(p => { 
+        pgF += p.valor; if(p.fonte === 'extra') pEx += p.valor; else if(p.fonte === 'adiantamento') pAd += p.valor; else pSa += p.valor; 
+      });
+
+      const limite = dados.config.limite || 0;
+      const utilizado = gCa - pgF;
+      const disponivel = limite - utilizado;
+
+      document.getElementById("r-extra").innerText = fmt(vEx - pEx);
+      document.getElementById("r-adiant").innerText = fmt(vAd - pAd);
+      document.getElementById("r-salario").innerText = fmt(vSa - pSa);
+      document.getElementById("r-cartao").innerHTML = `<div style="font-size:0.8rem">Gasto: <span style="color:var(--red)">${fmt(utilizado)}</span></div><div style="font-size:0.65rem; color:#aaa;">Disp: ${fmt(disponivel)}</div>`;
+
+      const pb = (id, g, t) => { const el = document.getElementById(id); const p = t > 0 ? Math.min((g/t)*100, 100) : 0; el.style.width = p + "%"; el.style.backgroundColor = p <= 50 ? "var(--green)" : p <= 80 ? "var(--orange)" : "var(--red)"; };
+      pb("b-extra", pEx, vEx); pb("b-adiant", pAd, vAd); pb("b-salario", pSa, vSa); pb("b-cartao", utilizado, limite);
+
+      atualizarGrafico(vEx + vAd + vSa, dFix + dVar);
+    }
+
+    // GRÁFICO
+    function atualizarGrafico(renda, despesa) {
+      const ctx = document.getElementById('meuGrafico').getContext('2d');
+      if (chartInstancia) chartInstancia.destroy();
+      chartInstancia = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Renda Bruta', 'Despesa Total'],
+          datasets: [{
+            data: [renda, despesa],
+            backgroundColor: ['#107c10', '#d13438'],
+            borderColor: '#1c1c1c',
+            borderWidth: 2
+          }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+      });
+    }
+
+    // EXPORTAÇÃO PDF
+    function gerarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const mes = document.getElementById("mes_select").value;
+      const info = dados[mes];
+
+      doc.setFontSize(18); doc.text("Relatório Mensal - MS Finanças", 14, 20);
+      doc.setFontSize(12); doc.text(`Mês Referência: ${mes}`, 14, 30);
+
+      const tableData = [];
+      info.receitas.forEach(r => tableData.push([r.desc, fmt(r.valor), "Entrada"]));
+      info.fixas.forEach(f => tableData.push([f.desc, fmt(f.valor), f.pago ? "Saída (Paga)" : "Saída (Pendente)"]));
+      info.variaveis.forEach(v => tableData.push([v.desc, fmt(v.valor), "Saída (Variável)"]));
+
+      doc.autoTable({
+        startY: 40,
+        head: [['Descrição', 'Valor', 'Tipo']],
+        body: tableData,
+        theme: 'striped'
+      });
+
+      doc.save(`Relatorio_MS_Financas_${mes}.pdf`);
+    }
+
+    function del(t, i) { if(confirm("Apagar?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
+    function sair() { if(confirm("Sair?")) auth.signOut(); }
   </script>
 </body>
 </html>
