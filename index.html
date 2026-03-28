@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.0 - ERP & Analytics</title>
+  <title>MS Finanças v6.1 - Precisão Decimal</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -108,9 +108,8 @@
         <div class="card"><h2>💰 Salário</h2><p id="r-salario">R$ 0,00</p><div class="barra-bg"><div id="b-salario" class="barra-fill"></div></div></div>
         <div class="card"><h2>💳 Cartão</h2><div id="r-cartao"></div><div class="barra-bg"><div id="b-cartao" class="barra-fill"></div></div></div>
       </div>
-      
       <div class="chart-container">
-        <canvas id="meuGrafico" style="max-width: 300px; max-height: 300px;"></canvas>
+        <canvas id="meuGrafico" style="max-width: 280px; max-height: 280px;"></canvas>
       </div>
     </main>
 
@@ -134,23 +133,21 @@
     <main id="aba-relatorio" class="tab-content">
       <div class="secao" style="text-align: center;">
         <h3>Relatórios Oficiais</h3>
-        <p style="font-size: 0.8rem; color: #888;">Gere um PDF detalhado do mês selecionado.</p>
         <button class="btn-action" style="background:var(--orange)" onclick="gerarPDF()">GERAR RELATÓRIO PDF</button>
       </div>
     </main>
   </div>
 
   <script>
-    // CONFIGURAÇÃO FIREBASE
     const firebaseConfig = { apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0", authDomain: "ms-financas.firebaseapp.com", projectId: "ms-financas", storageBucket: "ms-financas.firebasestorage.app", messagingSenderId: "825396392769", appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    
-    let dados = {};
+    let dados = {}, chartInstancia = null;
     let pendente = { tipo: '', i: 0, v: 0, d: '' };
-    let chartInstancia = null;
-    const fmt = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    // FUNÇÃO DE FORMATAÇÃO CORRIGIDA (Sempre 2 casas decimais)
+    const fmt = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     auth.onAuthStateChanged(user => {
       document.getElementById('tela-login').style.display = user ? 'none' : 'flex';
@@ -158,17 +155,17 @@
       if(user) sync(user.uid);
     });
 
-    // LÓGICA DE SINCRONIZAÇÃO E SALVAMENTO
     function sync(uid) {
       db.collection("usuarios").doc(uid).onSnapshot(doc => {
         if(doc.exists) {
           dados = doc.data();
           if(!dados.config) dados.config = { limite: 2000 };
-          document.getElementById('c-limite').value = dados.config.limite;
+          document.getElementById('c-limite').value = (dados.config.limite || 0).toFixed(2);
           popMeses(); renderizar();
         } else { dados = init(); save(); }
       });
     }
+
     async function save() { await db.collection("usuarios").doc(auth.currentUser.uid).set(dados); }
     async function autenticar(modo) {
       const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
@@ -182,58 +179,31 @@
       return b;
     }
 
-    // INTERFACE
-    function tab(e, n) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.getElementById(`aba-${n}`).classList.add('active'); e.currentTarget.classList.add('active');
-    }
-
-    function popMeses() {
-      const s = document.getElementById("mes_select"); if(s.options.length > 0) return;
-      ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m, i) => {
-        let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
-        if(i+1 === new Date().getMonth()+1) o.selected = true; s.appendChild(o);
-      });
-    }
-
-    // MODAIS E INPUTS
-    function abrirInput(tipo) {
-      pendente.tipo = tipo;
-      document.getElementById('in-desc').style.display = tipo === 'pgs' ? 'none' : 'block';
-      document.getElementById('in-desc').value = ""; document.getElementById('in-valor').value = "";
-      document.getElementById('modal-input').style.display = 'flex';
-    }
-    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
-    function confirmarInput() {
-      const d = document.getElementById('in-desc').value || "Pagamento";
-      const v = parseFloat(document.getElementById('in-valor').value);
-      const mes = document.getElementById("mes_select").value;
-      if(isNaN(v)) return;
-      pendente.d = d; pendente.v = v;
-      document.getElementById('modal-input').style.display = 'none';
-      if(pendente.tipo === 'receitas') { dados[mes].receitas.push({desc:d, valor:v}); save(); fecharModais(); }
-      else if(pendente.tipo === 'fixas') { dados[mes].fixas.push({desc:d, valor:v, pago:false}); save(); fecharModais(); }
-      else { document.getElementById('info-pagamento').innerText = `${d}: ${fmt(v)}`; document.getElementById('modal-fonte').style.display = 'flex'; }
-    }
-    function setFonte(f) {
-      const mes = document.getElementById("mes_select").value;
-      let fReal = f === 'auto' ? (new Date().getDate() <= 15 ? 'adiantamento' : 'salario') : f;
-      if(pendente.tipo === 'pgs') dados[mes].pgs.push({valor: pendente.v, fonte: fReal});
-      else if(pendente.tipo === 'vars') dados[mes].variaveis.push({desc: pendente.d, valor: pendente.v, meio: fReal});
-      else if(pendente.tipo === 'fixas') { dados[mes].fixas[pendente.i].pago = true; dados[mes].fixas[pendente.i].meio = fReal; }
-      fecharModais(); save();
-    }
-
-    // RENDER E CÁLCULOS
     function renderizar() {
       const mes = document.getElementById("mes_select").value || "2026-03";
       const info = dados[mes]; if(!info) return;
 
-      document.getElementById("l-receitas").innerHTML = (info.receitas || []).map((r, i) => `<div class="linha-item"><b style="flex:1">${r.desc}</b> <input type="number" step="0.01" style="width:90px" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);save()"></div>`).join('');
-      document.getElementById("l-fixas").innerHTML = (info.fixas || []).map((f, i) => `<div class="linha-item"><input type="checkbox" style="width:24px;height:24px" ${f.pago?'checked':''} onchange="if(this.checked){pendente={tipo:'fixas',i:${i}};document.getElementById('modal-fonte').style.display='flex';}else{dados['${mes}'].fixas[${i}].pago=false;save()}"><span style="flex:1" class="${f.pago?'pago-texto':''}">${f.desc} - ${fmt(f.valor)}</span><button class="btn-del" onclick="del('fixas',${i})">×</button></div>`).join('');
-      document.getElementById("l-vars").innerHTML = (info.variaveis || []).map((v, i) => `<div class="linha-item"><span style="flex:1">${v.desc} - ${fmt(v.valor)} (${v.meio})</span><button class="btn-del" onclick="del('variaveis',${i})">×</button></div>`).join('');
-      document.getElementById("l-pgs").innerHTML = (info.pgs || []).map((p, i) => `<div class="linha-item"><span style="flex:1">Fatura via ${p.fonte} - ${fmt(p.valor)}</span><button class="btn-del" onclick="del('pgs',${i})">×</button></div>`).join('');
+      // Lista Receitas (Corrigido toFixed(2) no input)
+      document.getElementById("l-receitas").innerHTML = (info.receitas || []).map((r, i) => `
+        <div class="linha-item"><b style="flex:1">${r.desc}</b> 
+        <input type="number" step="0.01" style="width:100px" value="${Number(r.valor).toFixed(2)}" 
+        onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);save()"></div>`).join('');
+
+      // Lista Fixas
+      document.getElementById("l-fixas").innerHTML = (info.fixas || []).map((f, i) => `
+        <div class="linha-item">
+          <input type="checkbox" style="width:24px;height:24px" ${f.pago?'checked':''} onchange="if(this.checked){pendente={tipo:'fixas',i:${i}};document.getElementById('modal-fonte').style.display='flex';}else{dados['${mes}'].fixas[${i}].pago=false;save()}">
+          <span style="flex:1" class="${f.pago?'pago-texto':''}">${f.desc} - ${fmt(f.valor)}</span>
+          <button class="btn-del" onclick="del('fixas',${i})">×</button>
+        </div>`).join('');
+
+      // Lista Variáveis
+      document.getElementById("l-vars").innerHTML = (info.variaveis || []).map((v, i) => `
+        <div class="linha-item"><span style="flex:1">${v.desc} - ${fmt(v.valor)} (${v.meio})</span><button class="btn-del" onclick="del('variaveis',${i})">×</button></div>`).join('');
+
+      // Lista Pagamentos
+      document.getElementById("l-pgs").innerHTML = (info.pgs || []).map((p, i) => `
+        <div class="linha-item"><span style="flex:1">Fatura via ${p.fonte} - ${fmt(p.valor)}</span><button class="btn-del" onclick="del('pgs',${i})">×</button></div>`).join('');
 
       resumo(mes);
     }
@@ -282,7 +252,6 @@
       atualizarGrafico(vEx + vAd + vSa, dFix + dVar);
     }
 
-    // GRÁFICO
     function atualizarGrafico(renda, despesa) {
       const ctx = document.getElementById('meuGrafico').getContext('2d');
       if (chartInstancia) chartInstancia.destroy();
@@ -291,7 +260,7 @@
         data: {
           labels: ['Renda Bruta', 'Despesa Total'],
           datasets: [{
-            data: [renda, despesa],
+            data: [renda.toFixed(2), despesa.toFixed(2)],
             backgroundColor: ['#107c10', '#d13438'],
             borderColor: '#1c1c1c',
             borderWidth: 2
@@ -301,7 +270,6 @@
       });
     }
 
-    // EXPORTAÇÃO PDF
     function gerarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -316,16 +284,49 @@
       info.fixas.forEach(f => tableData.push([f.desc, fmt(f.valor), f.pago ? "Saída (Paga)" : "Saída (Pendente)"]));
       info.variaveis.forEach(v => tableData.push([v.desc, fmt(v.valor), "Saída (Variável)"]));
 
-      doc.autoTable({
-        startY: 40,
-        head: [['Descrição', 'Valor', 'Tipo']],
-        body: tableData,
-        theme: 'striped'
-      });
-
+      doc.autoTable({ startY: 40, head: [['Descrição', 'Valor', 'Tipo']], body: tableData, theme: 'striped' });
       doc.save(`Relatorio_MS_Financas_${mes}.pdf`);
     }
 
+    // FUNÇÕES DE APOIO
+    function tab(e, n) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(`aba-${n}`).classList.add('active'); e.currentTarget.classList.add('active');
+    }
+    function popMeses() {
+      const s = document.getElementById("mes_select"); if(s.options.length > 0) return;
+      ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m, i) => {
+        let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
+        if(i+1 === new Date().getMonth()+1) o.selected = true; s.appendChild(o);
+      });
+    }
+    function abrirInput(tipo) {
+      pendente.tipo = tipo;
+      document.getElementById('in-desc').style.display = tipo === 'pgs' ? 'none' : 'block';
+      document.getElementById('in-desc').value = ""; document.getElementById('in-valor').value = "";
+      document.getElementById('modal-input').style.display = 'flex';
+    }
+    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+    function confirmarInput() {
+      const d = document.getElementById('in-desc').value || "Pagamento";
+      const v = parseFloat(document.getElementById('in-valor').value);
+      const mes = document.getElementById("mes_select").value;
+      if(isNaN(v)) return;
+      pendente.d = d; pendente.v = v;
+      document.getElementById('modal-input').style.display = 'none';
+      if(pendente.tipo === 'receitas') { dados[mes].receitas.push({desc:d, valor:v}); save(); fecharModais(); }
+      else if(pendente.tipo === 'fixas') { dados[mes].fixas.push({desc:d, valor:v, pago:false}); save(); fecharModais(); }
+      else { document.getElementById('info-pagamento').innerText = `${d}: ${fmt(v)}`; document.getElementById('modal-fonte').style.display = 'flex'; }
+    }
+    function setFonte(f) {
+      const mes = document.getElementById("mes_select").value;
+      let fReal = f === 'auto' ? (new Date().getDate() <= 15 ? 'adiantamento' : 'salario') : f;
+      if(pendente.tipo === 'pgs') dados[mes].pgs.push({valor: pendente.v, fonte: fReal});
+      else if(pendente.tipo === 'vars') dados[mes].variaveis.push({desc: pendente.d, valor: pendente.v, meio: fReal});
+      else if(pendente.tipo === 'fixas') { dados[mes].fixas[pendente.i].pago = true; dados[mes].fixas[pendente.i].meio = fReal; }
+      fecharModais(); save();
+    }
     function del(t, i) { if(confirm("Apagar?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
     function sair() { if(confirm("Sair?")) auth.signOut(); }
   </script>
