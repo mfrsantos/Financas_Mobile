@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.3.3</title>
+  <title>MS Finanças v6.3.5 - Fluxo Temporal</title>
   
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2c3e50">
@@ -26,12 +26,8 @@
     .logo-container { display: flex; align-items: center; gap: 10px; }
     .app-logo { width: 35px; height: 35px; border-radius: 8px; }
 
-    .alerta-vencido { color: var(--red) !important; font-weight: 800; }
-    .alerta-hoje { color: var(--yellow) !important; font-weight: 800; }
-    .badge-aviso { background: var(--orange); color: white; padding: 12px; border-radius: 12px; margin: 10px; font-size: 0.85rem; text-align: center; display: none; font-weight: bold; }
-
-    .modal-content input, .modal-content select { width: 100%; padding: 18px; margin-bottom: 15px; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 12px; font-size: 1.1rem; }
-    .modal-btn { width: 100%; padding: 18px; margin: 8px 0; border: none; border-radius: 12px; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
+    #tela-login input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 10px; background: #111; color: #fff; border: 1px solid #444; }
+    .btn-action { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: 800; color: white; cursor: pointer; margin-top: 10px; font-size: 1rem; }
     
     #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
     .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
@@ -47,15 +43,14 @@
     
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
     .modal-content { background: var(--card-bg); border: 2px solid var(--blue); padding: 30px; border-radius: 25px; width: 95%; max-width: 380px; }
+    .modal-btn { width: 100%; padding: 18px; margin: 8px 0; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; }
     
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
     .linha-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #383838; gap: 10px; font-size: 0.9rem; }
-    .btn-action { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: 800; color: white; cursor: pointer; margin-top: 10px; font-size: 1rem; }
     .btn-del { background: var(--red); border: none; color: white; border-radius: 10px; width: 35px; height: 35px; font-weight: bold; }
-    .pago-texto { text-decoration: line-through; color: #666 !important; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    select#mes_select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 15px; border-radius: 12px; width: 100%; font-size: 1rem; }
+    select#mes_select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 15px; border-radius: 12px; width: 100%; font-size: 1rem; margin-bottom: 15px; }
   </style>
 </head>
 <body>
@@ -64,22 +59,22 @@
     <div id="box-login" style="background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--blue); text-align: center;">
       <img src="./icon-192x192.png" style="width: 70px; margin-bottom: 10px; border-radius: 12px;">
       <h2 style="color:var(--blue); margin-bottom:20px;">MS FINANÇAS</h2>
-      <input type="email" id="l-email" placeholder="E-mail" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; background:#111; color:#fff; border:1px solid #444;">
-      <input type="password" id="l-pass" placeholder="Senha" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; background:#111; color:#fff; border:1px solid #444;">
+      <input type="email" id="l-email" placeholder="E-mail">
+      <input type="password" id="l-pass" placeholder="Senha">
       <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">ENTRAR</button>
-      <p style="margin-top:20px; font-size:0.8rem; color:#888;">Novo por aqui?</p>
+      <button onclick="autenticar('reset')" style="background:none; border:none; color:#888; font-size:0.75rem; margin-top:10px; cursor:pointer; text-decoration:underline;">Esqueci minha senha</button>
+      <p style="margin-top:20px; font-size:0.8rem; color:#888;">Novo usuário?</p>
       <button onclick="alternarAuth('cadastro')" style="background:none; border:none; color:var(--blue); font-weight:bold; cursor:pointer;">CRIAR CONTA</button>
       <p id="msg-login" style="color:var(--red); font-size:0.8rem; margin-top:10px;"></p>
     </div>
 
     <div id="box-cadastro" style="background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--green); text-align: center; display:none;">
       <h2 style="color:var(--green); margin-bottom:20px;">CADASTRO</h2>
-      <input type="email" id="c-email" placeholder="Seu melhor e-mail" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; background:#111; color:#fff; border:1px solid #444;">
-      <input type="password" id="c-pass" placeholder="Crie uma senha" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; background:#111; color:#fff; border:1px solid #444;">
-      <input type="password" id="c-confpass" placeholder="Confirme a senha" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; background:#111; color:#fff; border:1px solid #444;">
+      <input type="email" id="c-email" placeholder="E-mail">
+      <input type="password" id="c-pass" placeholder="Senha">
+      <input type="password" id="c-confpass" placeholder="Confirme a senha">
       <button class="btn-action" style="background:var(--green)" onclick="autenticar('cadastro')">CADASTRAR</button>
-      <button onclick="alternarAuth('login')" style="background:none; border:none; color:#888; margin-top:15px; cursor:pointer;">Voltar ao Login</button>
-      <p id="msg-cadastro" style="color:var(--red); font-size:0.8rem; margin-top:10px;"></p>
+      <button onclick="alternarAuth('login')" style="background:none; border:none; color:#888; margin-top:15px; cursor:pointer;">Voltar</button>
     </div>
   </div>
 
@@ -87,13 +82,12 @@
     <header style="display:flex; justify-content: space-between; align-items: center; margin: 10px;">
       <div class="logo-container">
         <img src="./icon-192x192.png" class="app-logo">
-        <span style="color:var(--blue); font-weight:800; font-size:1.1rem;">MS FINANÇAS</span>
+        <span style="color:var(--blue); font-weight:800;">MS FINANÇAS</span>
       </div>
       <button onclick="sair()" style="background:none; border:none; color:var(--red); font-weight:bold;">SAIR</button>
     </header>
 
     <select id="mes_select" onchange="renderizar();"></select>
-    <div id="aviso-geral" class="badge-aviso"></div>
 
     <nav class="tab-bar">
       <button class="tab-btn active" onclick="tab(event, 'resumo')">RESUMO</button>
@@ -105,23 +99,37 @@
 
     <main id="aba-resumo" class="tab-content active">
       <div class="cards-grid">
-        <div class="card"><h2>💎 Extra</h2><p id="r-extra">R$ 0,00</p><div class="barra-bg"><div id="b-extra" class="barra-fill" style="background:var(--green)"></div></div></div>
+        <div class="card"><h2>💎 Renda Extra</h2><p id="r-extra">R$ 0,00</p><div class="barra-bg"><div id="b-extra" class="barra-fill" style="background:var(--green)"></div></div></div>
         <div class="card"><h2>📅 Adiantam.</h2><p id="r-adiant">R$ 0,00</p><div class="barra-bg"><div id="b-adiant" class="barra-fill" style="background:var(--blue)"></div></div></div>
         <div class="card"><h2>💰 Salário</h2><p id="r-salario">R$ 0,00</p><div class="barra-bg"><div id="b-salario" class="barra-fill" style="background:var(--yellow)"></div></div></div>
-        <div class="card"><h2>💳 Cartão</h2><p id="r-cartao">R$ 0,00</p><div class="barra-bg"><div id="b-cartao" class="barra-fill" style="background:var(--red)"></div></div></div>
+        <div class="card"><h2>💳 Fat. Aberta</h2><p id="r-cartao">R$ 0,00</p><div class="barra-bg"><div id="b-cartao" class="barra-fill" style="background:var(--red)"></div></div></div>
       </div>
       <center><canvas id="meuGrafico" style="max-width:250px; margin-top:20px;"></canvas></center>
     </main>
 
-    <main id="aba-receitas" class="tab-content"><div class="secao"><div id="l-receitas"></div><button onclick="abrirInput('receitas')" class="btn-action" style="background:var(--green)">+ NOVA RENDA</button></div></main>
+    <main id="aba-receitas" class="tab-content">
+      <div class="secao">
+        <h3>Recebimentos Fixos</h3>
+        <p style="font-size:0.7rem; color:#888;">Cadastre aqui seu Salário e Adiantamento.</p>
+        <div id="l-receitas-fixas"></div>
+        <button onclick="abrirInput('receitas-fixas')" class="btn-action" style="background:var(--blue)">+ SALÁRIO/ADIANTAM.</button>
+      </div>
+      <div class="secao">
+        <h3>Rendas Extras</h3>
+        <div id="l-receitas-extras"></div>
+        <button onclick="abrirInput('receitas-extras')" class="btn-action" style="background:var(--green)">+ RENDA EXTRA</button>
+      </div>
+    </main>
+    
     <main id="aba-despesas" class="tab-content">
-        <div class="secao"><h3>Fixas</h3><div id="l-fixas"></div><button onclick="abrirInput('fixas')" class="btn-action" style="background:var(--blue)">+ FIXA</button></div>
-        <div class="secao"><h3>Variáveis</h3><div id="l-vars"></div><button onclick="abrirInput('vars')" class="btn-action" style="background:var(--yellow); color:#000">+ VARIÁVEL</button></div>
+      <div class="secao"><h3>Contas</h3><div id="l-contas"></div><button onclick="abrirInput('contas')" class="btn-action" style="background:var(--orange)">+ NOVA CONTA</button></div>
     </main>
+
     <main id="aba-cartao" class="tab-content">
-        <div class="secao"><label>Limite:</label><input type="number" id="c-limite" onchange="dados.config.limite=parseFloat(this.value);save()"></div>
-        <div id="l-pgs"></div><button onclick="abrirInput('pgs')" class="btn-action" style="background:var(--blue)">+ PAGAMENTO</button>
+      <div class="secao"><label>Limite Total:</label><input type="number" id="c-limite" onchange="dados.config.limite=parseFloat(this.value);save()"></div>
+      <div class="secao"><h3>Pagamentos de Fatura</h3><div id="l-pgs"></div><button onclick="abrirInput('pgs')" class="btn-action" style="background:var(--blue)">+ ANTECIPAR FATURA</button></div>
     </main>
+
     <main id="aba-relatorio" class="tab-content"><button class="btn-action" style="background:var(--orange)" onclick="gerarPDF()">BAIXAR PDF</button></main>
   </div>
 
@@ -129,16 +137,16 @@
     <h3 id="input-titulo">Novo Registro</h3>
     <input type="text" id="in-desc" placeholder="Descrição">
     <input type="number" step="0.01" id="in-valor" placeholder="Valor">
-    <div id="campo-vencimento" style="display:none;"><input type="date" id="in-data"></div>
+    <div id="campo-data"><label style="font-size:0.7rem; color:#888;">Data:</label><input type="date" id="in-data"></div>
     <button class="modal-btn" style="background:var(--blue)" onclick="confirmarInput()">SALVAR</button>
-    <button class="modal-btn" style="background:#444" onclick="fecharModais()">FECHAR</button>
+    <button class="modal-btn" style="background:#444" onclick="fecharModais()">CANCELAR</button>
   </div></div>
 
   <div id="modal-fonte" class="modal"><div class="modal-content">
-    <h3>Pagar com:</h3>
-    <button class="modal-btn" style="background:var(--red)" onclick="setFonte('cartao')">CARTÃO</button>
-    <button class="modal-btn" style="background:var(--blue)" onclick="setFonte('auto')">DÉBITO (SALÁRIO)</button>
-    <button class="modal-btn" style="background:var(--green)" onclick="setFonte('extra')">EXTRA</button>
+    <h3 id="titulo-fonte">Pagar com:</h3>
+    <button id="btn-fonte-credito" class="modal-btn" style="background:var(--red)" onclick="setFonte('credito')">💳 CRÉDITO</button>
+    <button class="modal-btn" style="background:var(--blue)" onclick="setFonte('debito')">🏦 DÉBITO (SALÁRIO/AD.)</button>
+    <button class="modal-btn" style="background:var(--green)" onclick="setFonte('extra')">💎 RENDA EXTRA</button>
   </div></div>
 
   <script>
@@ -163,15 +171,24 @@
     async function autenticar(m) {
       const e = document.getElementById(m==='login'?'l-email':'c-email').value;
       const p = document.getElementById(m==='login'?'l-pass':'c-pass').value;
-      if(m==='cadastro' && p !== document.getElementById('c-confpass').value) return alert("Senhas não conferem!");
-      try { m==='login' ? await auth.signInWithEmailAndPassword(e,p) : await auth.createUserWithEmailAndPassword(e,p); }
-      catch(err) { alert(err.message); }
+      try {
+        if(m==='login') await auth.signInWithEmailAndPassword(e,p);
+        else if(m==='cadastro') {
+          if(p !== document.getElementById('c-confpass').value) return alert("Senhas não conferem!");
+          await auth.createUserWithEmailAndPassword(e,p);
+          alert("Conta criada!");
+        } else if(m==='reset') {
+          await auth.sendPasswordResetEmail(e); alert("E-mail enviado!");
+        }
+      } catch(err) { alert(err.message); }
     }
 
     async function sync() {
       popMeses();
       const doc = await db.collection("usuarios").doc(uid).get();
       dados = doc.exists ? doc.data() : { config: { limite: 0 } };
+      if(!dados.config) dados.config = { limite: 0 };
+      document.getElementById('c-limite').value = dados.config.limite;
       renderizar();
     }
 
@@ -179,31 +196,61 @@
 
     function renderizar() {
       const mes = document.getElementById("mes_select").value;
-      if(!dados[mes]) dados[mes] = { receitas: [], fixas: [], vars: [], pgs: [] };
+      if(!dados[mes]) dados[mes] = { r_fixas: [], r_extras: [], contas: [], pgs: [] };
       const d = dados[mes];
 
-      let totR = d.receitas.reduce((a,b)=>a+b.v,0);
-      let totF = d.fixas.reduce((a,b)=>a+b.v,0);
-      let totV = d.vars.reduce((a,b)=>a+b.v,0);
-      let totP = d.pgs.reduce((a,b)=>a+b.v,0);
+      // 1. CALCULAR RECEITAS (BRUTAS)
+      let brutoAdiant = d.r_fixas.filter(r => r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
+      let brutoSalario = d.r_fixas.filter(r => !r.d.toLowerCase().includes('adiant')).reduce((a,b)=>a+b.v,0);
+      let brutoExtra = d.r_extras.reduce((a,b)=>a+b.v,0);
 
-      document.getElementById('r-extra').innerText = fmt(totR);
-      document.getElementById('r-salario').innerText = fmt(totF + totV);
-      document.getElementById('r-cartao').innerText = fmt(totP);
+      // 2. CALCULAR DESCONTOS POR FONTE E DATA
+      let descAdiant = 0, descSalario = 0, descExtra = 0, faturaAberta = 0;
 
-      list('l-receitas', d.receitas, 'receitas');
-      list('l-fixas', d.fixas, 'fixas');
-      list('l-vars', d.vars, 'vars');
+      d.contas.forEach(c => {
+        if(c.fonte === 'debito') {
+          let dia = parseInt(c.data.split('-')[2]);
+          if(dia <= 15) descAdiant += c.v;
+          else descSalario += c.v;
+        } 
+        else if(c.fonte === 'extra') descExtra += c.v;
+        else if(c.fonte === 'credito') faturaAberta += c.v;
+      });
+
+      // Pagamentos de Fatura (Antecipação)
+      d.pgs.forEach(p => {
+        faturaAberta -= p.v;
+        if(p.fonte === 'debito') {
+          let dia = parseInt(p.data.split('-')[2]);
+          if(dia <= 15) descAdiant += p.v; else descSalario += p.v;
+        } else if(p.fonte === 'extra') descExtra += p.v;
+      });
+
+      // 3. ATUALIZAR CARDS (SALDO LÍQUIDO)
+      document.getElementById('r-extra').innerText = fmt(brutoExtra - descExtra);
+      document.getElementById('r-adiant').innerText = fmt(brutoAdiant - descAdiant);
+      document.getElementById('r-salario').innerText = fmt(brutoSalario - descSalario);
+      document.getElementById('r-cartao').innerText = fmt(faturaAberta);
+
+      // BARRAS
+      document.getElementById('b-extra').style.width = Math.min(((brutoExtra-descExtra)/(brutoExtra||1))*100, 100) + "%";
+      document.getElementById('b-adiant').style.width = Math.min(((brutoAdiant-descAdiant)/(brutoAdiant||1))*100, 100) + "%";
+      document.getElementById('b-salario').style.width = Math.min(((brutoSalario-descSalario)/(brutoSalario||1))*100, 100) + "%";
+      document.getElementById('b-cartao').style.width = Math.min((faturaAberta/(dados.config.limite||1))*100, 100) + "%";
+
+      list('l-receitas-fixas', d.r_fixas, 'r_fixas');
+      list('l-receitas-extras', d.r_extras, 'r_extras');
+      list('l-contas', d.contas, 'contas');
       list('l-pgs', d.pgs, 'pgs');
       
-      atualizarGrafico(totR, totF, totV);
+      atualizarGrafico(brutoExtra, brutoAdiant, brutoSalario);
     }
 
     function list(id, arr, tipo) {
       const el = document.getElementById(id); el.innerHTML = "";
       arr.forEach((item, i) => {
         el.innerHTML += `<div class="linha-item">
-          <span style="flex:1">${item.d}</span>
+          <div style="flex:1"><b>${item.d}</b><br><small>${item.data} | ${item.fonte||''}</small></div>
           <span>${fmt(item.v)}</span>
           <button class="btn-del" onclick="del('${tipo}',${i})">X</button>
         </div>`;
@@ -211,41 +258,35 @@
     }
 
     function abrirInput(t) {
-      pendente.tipo = t;
-      document.getElementById('input-titulo').innerText = "Adicionar " + t;
-      document.getElementById('campo-vencimento').style.display = (t==='fixas'||t==='vars') ? 'block' : 'none';
+      pendente = { tipo: t };
+      document.getElementById('in-data').value = new Date().toISOString().split('T')[0];
       document.getElementById('modal-input').style.display = 'flex';
     }
 
     function confirmarInput() {
-      const mes = document.getElementById("mes_select").value;
-      const v = parseFloat(document.getElementById('in-valor').value);
-      const d = document.getElementById('in-desc').value;
-      if(!v || !d) return alert("Preencha tudo");
-      
-      if(pendente.tipo === 'fixas' || pendente.tipo === 'vars') {
-        pendente.v = v; pendente.d = d;
+      const v = parseFloat(document.getElementById('in-valor').value), d = document.getElementById('in-desc').value, dt = document.getElementById('in-data').value;
+      if(!v || !d || !dt) return alert("Preencha tudo");
+      pendente.v = v; pendente.d = d; pendente.data = dt;
+
+      if(pendente.tipo === 'contas' || pendente.tipo === 'pgs') {
         document.getElementById('modal-input').style.display = 'none';
+        document.getElementById('btn-fonte-credito').style.display = pendente.tipo === 'pgs' ? 'none' : 'block';
         document.getElementById('modal-fonte').style.display = 'flex';
       } else {
-        dados[mes][pendente.tipo].push({ d, v });
+        const mes = document.getElementById("mes_select").value;
+        dados[mes][pendente.tipo].push({ d, v, data: dt });
         fecharModais(); save();
       }
     }
 
     function setFonte(f) {
       const mes = document.getElementById("mes_select").value;
-      dados[mes][pendente.tipo].push({ d: pendente.d, v: pendente.v, fonte: f });
+      dados[mes][pendente.tipo].push({ d: pendente.d, v: pendente.v, data: pendente.data, fonte: f });
       fecharModais(); save();
     }
 
     function fecharModais() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
-
-    function del(t, i) { 
-      const mes = document.getElementById("mes_select").value;
-      if(confirm("Apagar?")) { dados[mes][t].splice(i,1); save(); } 
-    }
-
+    function del(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
     function sair() { auth.signOut(); }
 
     function popMeses() {
@@ -262,26 +303,26 @@
       document.getElementById('aba-'+n).classList.add('active'); e.target.classList.add('active');
     }
 
-    function atualizarGrafico(r, f, v) {
+    function atualizarGrafico(e, a, s) {
       const ctx = document.getElementById('meuGrafico').getContext('2d');
       if(chartInstancia) chartInstancia.destroy();
       chartInstancia = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Renda', 'Fixas', 'Vars'],
-          datasets: [{ data: [r, f, v], backgroundColor: ['#107c10', '#0078d4', '#ffb900'] }]
+          labels: ['Extra', 'Adiant.', 'Salário'],
+          datasets: [{ data: [e, a, s], backgroundColor: ['#107c10', '#0078d4', '#ffb900'], borderWidth: 0 }]
         },
-        options: { plugins: { legend: { display: false } } }
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 10 } } } } }
       });
     }
 
     function gerarPDF() {
       const { jsPDF } = window.jspdf; const doc = new jsPDF();
-      doc.text("Relatório Financeiro - MS Informática", 10, 10);
+      doc.text("Relatório Financeiro MS", 10, 10);
       doc.save("financeiro.pdf");
     }
 
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   </script>
 </body>
 </html>
