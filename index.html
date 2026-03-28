@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.3.1 - Revisão Total</title>
+  <title>MS Finanças v6.3.2</title>
   
   <meta name="theme-color" content="#2c3e50">
-  <link rel="icon" type="image/png" href="icon-192x192.png">
-  <link rel="apple-touch-icon" href="icon-192x192.png">
+  <link rel="icon" type="image/png" href="./icon-192x192.png">
+  <link rel="apple-touch-icon" href="./icon-192x192.png">
+  <link rel="manifest" href="./manifest.json">
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -22,9 +23,8 @@
     * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; padding-bottom: 30px; }
     
-    /* Estilos da Logo e Header */
     .logo-container { display: flex; align-items: center; gap: 10px; }
-    .app-logo { width: 35px; height: 35px; border-radius: 8px; }
+    .app-logo { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
 
     .alerta-vencido { color: var(--red) !important; font-weight: 800; }
     .alerta-hoje { color: var(--yellow) !important; font-weight: 800; }
@@ -62,7 +62,7 @@
 
   <div id="tela-login" style="position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
     <div class="login-box" style="background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--blue); text-align: center;">
-      <img src="icon-192x192.png" alt="Logo MS" style="width: 80px; margin-bottom: 15px; border-radius: 15px;">
+      <img src="./icon-192x192.png" alt="Logo MS" style="width: 80px; margin-bottom: 15px; border-radius: 15px;" onerror="this.style.display='none'">
       <h2 style="color:var(--blue); margin-bottom:20px;">MS FINANÇAS</h2>
       <input type="email" id="l-email" placeholder="E-mail" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; background:#111; color:#fff; border:1px solid #444;">
       <input type="password" id="l-pass" placeholder="Senha" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; background:#111; color:#fff; border:1px solid #444;">
@@ -100,14 +100,13 @@
   <div id="app-content">
     <header style="display:flex; justify-content: space-between; align-items: center; margin: 10px;">
       <div class="logo-container">
-        <img src="icon-192x192.png" alt="MS Logo" class="app-logo">
+        <img src="./icon-192x192.png" alt="MS Logo" class="app-logo" onerror="this.style.display='none'">
         <span style="color:var(--blue); font-weight:800; font-size:1.1rem;">MS FINANÇAS</span>
       </div>
       <button onclick="sair()" style="background:none; border:none; color:var(--red); font-weight:bold;">SAIR</button>
     </header>
 
     <div id="aviso-geral" class="badge-aviso"></div>
-
     <select id="mes_select" onchange="renderizar();" style="margin-bottom:15px;"></select>
 
     <nav class="tab-bar">
@@ -179,6 +178,7 @@
         } else { dados = init(); save(); }
       });
     }
+
     async function save() { await db.collection("usuarios").doc(auth.currentUser.uid).set(dados); }
 
     function init() {
@@ -327,6 +327,7 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.getElementById(`aba-${n}`).classList.add('active'); e.currentTarget.classList.add('active');
     }
+
     function del(t, i) { if(confirm("Deseja realmente apagar este registro?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
     function sair() { if(confirm("Deseja sair da conta?")) auth.signOut(); }
     async function autenticar(modo) { 
@@ -334,14 +335,15 @@
         try { modo === 'login' ? await auth.signInWithEmailAndPassword(e, p) : await auth.createUserWithEmailAndPassword(e, p); } 
         catch (err) { document.getElementById('msg-login').innerText = "Erro: " + err.message; } 
     }
-    // Registro do Service Worker para funcionamento Offline
+
+    // REGISTRO DO SERVICE WORKER
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW Ativo!', reg.scope))
-          .catch(err => console.log('Erro no SW:', err));
-  });
-}
+          .then(reg => console.log('Service Worker ativo!', reg.scope))
+          .catch(err => console.log('Falha ao registrar Service Worker:', err));
+      });
+    }
   </script>
 </body>
 </html>
