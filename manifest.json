@@ -1,47 +1,36 @@
 {
-  "id": "com.msinformatica.financascloud",
-  "name": "ERP Finanças MS Cloud",
+  "name": "MS Finanças",
   "short_name": "MS Finanças",
-  "description": "Controle Financeiro MS Informática Bom Despacho",
-  "start_url": "/Financas_Mobile/index.html",
+  "description": "Sistema de gestão financeira MS Finanças.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#1c1c1c",
   "theme_color": "#0078d4",
-  "orientation": "portrait",
-  "scope": "/Financas_Mobile/",
-  "lang": "pt-BR",
+  "id": "com.msfinancas.app",
   "dir": "ltr",
-  "categories": ["finance", "productivity"],
-  "iarc_rating_id": "e",
+  "lang": "pt-BR",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Tela Inicial MS Finanças"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
-      "sizes": "512x512",
+      "src": "screenshot.png",
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Tela Inicial MS Finanças"
+      "label": "Tela Principal MS Finanças"
     }
   ]
 }
