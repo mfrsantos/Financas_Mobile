@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>MS Finanças</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon-192.png">
-  <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="theme-color" content="#0078d4">
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -16,66 +14,63 @@
   <style>
     :root { --blue: #0078d4; --green: #107c10; --yellow: #ffb900; --orange: #d83b01; --red: #d13438; --bg: #1c1c1c; --card-bg: #2b2b2b; --border: #3c3c3c; }
     * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
-    body { margin: 0; background: var(--bg); color: #fff; }
+    body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; }
     
-    #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .login-box { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center; }
-    .login-box input { width: 100%; padding: 12px; margin: 8px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; }
-    .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-
     #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
     
+    /* Tabs */
     .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.7rem; }
+    .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.65rem; }
     .tab-btn.active { background: #323232; color: var(--blue); }
 
+    /* Cards */
     .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-    
-    /* Estilo dos Ícones nos Cards */
-    .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-    .card-icon { font-size: 1.1rem; }
-    .card h2 { margin: 0; font-size: 0.6rem; color: #b0b0b0; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .card p { margin: 5px 0 10px 0; font-size: 0.95rem; font-weight: 800; z-index: 2; }
-    
-    .barra-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #333; }
-    .barra-fill { height: 100%; width: 0%; transition: width 0.8s ease, background-color 0.5s ease; }
+    .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; height: 90px; }
+    .card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .card h2 { margin: 0; font-size: 0.55rem; color: #b0b0b0; text-transform: uppercase; }
+    .card p { margin: 4px 0; font-size: 0.9rem; font-weight: 800; }
+    .barra-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: #333; }
+    .barra-fill { height: 100%; width: 0%; transition: width 0.6s, background 0.4s; }
 
+    /* Listas */
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .linha-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #383838; gap: 10px; }
-    .info-area { display: flex; flex: 1; justify-content: space-between; font-size: 0.85rem; align-items: center; }
+    .linha-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #383838; gap: 10px; }
+    .info-area { display: flex; flex: 1; justify-content: space-between; font-size: 0.8rem; }
     
-    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; color: white; cursor: pointer; }
-    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 28px; height: 28px; }
-    
-    select, input[type="number"] { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 8px; border-radius: 6px; }
+    /* Botões */
+    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; color: white; cursor: pointer; margin-top: 5px; }
+    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 26px; height: 26px; }
+
+    /* MODAL CUSTOMIZADO */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--blue); padding: 20px; border-radius: 20px; width: 100%; max-width: 320px; text-align: center; }
+    .modal-btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+
+    input, select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 10px; border-radius: 8px; width: 100%; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .pago-texto { text-decoration: line-through; color: #888; }
+    .pago-texto { text-decoration: line-through; color: #666; }
   </style>
 </head>
 <body>
 
-  <div id="tela-login">
-    <div class="login-box">
-      <h2 style="color:var(--blue); margin-bottom: 20px;">MS FINANÇAS</h2>
-      <input type="email" id="login-email" placeholder="E-mail">
-      <input type="password" id="login-senha" placeholder="Senha">
-      <div class="btn-group">
-        <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">ENTRAR</button>
-        <button class="btn-action" style="background:#444" onclick="autenticar('cadastro')">CADASTRAR</button>
-      </div>
+  <div id="modal-fonte" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-top:0">Selecione a Fonte</h3>
+      <button class="modal-btn" style="background:var(--blue)" onclick="escolherFonte('cartao')">💳 Cartão de Crédito</button>
+      <button class="modal-btn" style="background:var(--green)" onclick="escolherFonte('auto')">🏦 Débito Automático</button>
+      <button class="modal-btn" style="background:var(--purple)" onclick="escolherFonte('extra')">💎 Saldo Extra</button>
+      <button class="modal-btn" style="background:#444; margin-top:10px" onclick="fecharModal()">Cancelar</button>
     </div>
   </div>
 
   <div id="app-content">
-    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 5px;">
+    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
       <span style="color:var(--blue); font-weight:800;">MS FINANÇAS</span>
-      <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-weight:bold; font-size: 0.8rem;">Sair</button>
+      <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-size: 0.7rem;">Sair</button>
     </header>
 
-    <select id="mes_select" onchange="renderizar();" style="width:100%; margin-bottom:15px;"></select>
+    <select id="mes_select" onchange="renderizar();" style="margin-bottom:15px;"></select>
 
     <nav class="tab-bar">
       <button class="tab-btn active" onclick="mudarAba(event, 'resumo')">RESUMO</button>
@@ -87,40 +82,31 @@
     <main id="aba-resumo" class="tab-content active">
       <div class="cards-grid">
         <div class="card">
-          <div class="card-header">
-            <span class="card-icon">💎</span>
-            <h2>Saldo Extra</h2>
-          </div>
+          <div class="card-header"><span>💎</span><h2>Saldo Extra</h2></div>
           <p id="res-extra">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-extra" class="barra-fill"></div></div>
         </div>
-        
         <div class="card">
-          <div class="card-header">
-            <span class="card-icon">📅</span>
-            <h2>Adiantamento</h2>
-          </div>
+          <div class="card-header"><span>📅</span><h2>Adiantamento</h2></div>
           <p id="res-adiant">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-adiant" class="barra-fill"></div></div>
         </div>
-
         <div class="card">
-          <div class="card-header">
-            <span class="card-icon">💰</span>
-            <h2>Salário Final</h2>
-          </div>
+          <div class="card-header"><span>💰</span><h2>Salário Final</h2></div>
           <p id="res-salario">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-salario" class="barra-fill"></div></div>
         </div>
-
         <div class="card">
-          <div class="card-header">
-            <span class="card-icon">💳</span>
-            <h2>Uso do Cartão</h2>
-          </div>
+          <div class="card-header"><span>💳</span><h2>Uso do Cartão</h2></div>
           <p id="res-cartao-info">R$ 0,00</p>
           <div class="barra-bg"><div id="bar-cartao" class="barra-fill"></div></div>
         </div>
+      </div>
+
+      <div class="secao" style="margin-top:15px">
+        <h3>Configurações</h3>
+        <label style="font-size:0.7rem; color:#aaa">Limite do Cartão:</label>
+        <input type="number" id="cfg-limite" step="0.01" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()">
       </div>
     </main>
 
@@ -133,12 +119,12 @@
 
     <main id="aba-despesas" class="tab-content">
       <div class="secao">
-        <h3>Contas Fixas</h3>
+        <h3>Fixas</h3>
         <div id="lista-fixas"></div>
-        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ Nova Conta Fixa</button>
+        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ Nova Fixa</button>
       </div>
       <div class="secao">
-        <h3>Despesas Variáveis</h3>
+        <h3>Variáveis</h3>
         <div id="lista-variaveis"></div>
         <button onclick="addItem('variaveis')" class="btn-action" style="background:var(--yellow); color:#000">+ Nova Variável</button>
       </div>
@@ -146,7 +132,7 @@
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
-        <h3>Pagamento de Fatura</h3>
+        <h3>Pagamentos Realizados</h3>
         <div id="lista-pagamentos"></div>
         <button onclick="pagarFatura()" class="btn-action" style="background:var(--blue)">+ Registrar Pagamento</button>
       </div>
@@ -154,66 +140,41 @@
   </div>
 
   <script>
-    // Configurações e Lógica Firebase (Mesma da v3.8)
-    const firebaseConfig = {
-      apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0",
-      authDomain: "ms-financas.firebaseapp.com",
-      projectId: "ms-financas",
-      storageBucket: "ms-financas.firebasestorage.app",
-      messagingSenderId: "825396392769",
-      appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0"
-    };
-
+    // Config Firebase
+    const firebaseConfig = { apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0", authDomain: "ms-financas.firebaseapp.com", projectId: "ms-financas", storageBucket: "ms-financas.firebasestorage.app", messagingSenderId: "825396392769", appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
     let dados = {};
-
-    async function autenticar(tipo) {
-      const email = document.getElementById('login-email').value;
-      const senha = document.getElementById('login-senha').value;
-      try {
-        if(tipo === 'login') await auth.signInWithEmailAndPassword(email, senha);
-        else { await auth.createUserWithEmailAndPassword(email, senha); alert("Conta criada!"); }
-      } catch (e) { alert("Erro na autenticação."); }
-    }
+    let pendentePagamento = { tipo: '', index: '' };
 
     auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('tela-login').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
-        carregarDados(user.uid);
-      } else {
-        document.getElementById('tela-login').style.display = 'flex';
-        document.getElementById('app-content').style.display = 'none';
-      }
+      if (user) { document.getElementById('app-content').style.display = 'block'; carregarDados(user.uid); }
+      else { window.location.href = "index.html"; } // Simples fallback para login
     });
 
     async function carregarDados(uid) {
       const doc = await db.collection("usuarios").doc(uid).get();
       dados = doc.exists ? doc.data() : inicializar();
+      if(!dados.config) dados.config = { limiteCartao: 2000 };
+      document.getElementById('cfg-limite').value = dados.config.limiteCartao;
       popularMeses();
       renderizar();
     }
 
     async function salvar() {
-      const user = auth.currentUser;
-      if (user) {
-        await db.collection("usuarios").doc(user.uid).set(dados);
-        renderizar();
-      }
+      await db.collection("usuarios").doc(auth.currentUser.uid).set(dados);
+      renderizar();
     }
 
     function inicializar() {
       const base = { config: { limiteCartao: 2000.00 } };
-      for (let m = 1; m <= 12; m++) {
-        base[`2026-${String(m).padStart(2, '0')}`] = { receitas: [{desc: "Adiantamento", valor: 0}, {desc: "Salário", valor: 0}], fixas: [], variaveis: [], pagamentosFatura: [] };
-      }
+      for (let m = 1; m <= 12; m++) { base[`2026-${String(m).padStart(2, '0')}`] = { receitas: [{desc: "Adiantamento", valor: 0}, {desc: "Salário", valor: 0}], fixas: [], variaveis: [], pagamentosFatura: [] }; }
       return base;
     }
 
-    function capitalizar(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
-    function formatar(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }); }
+    function formatar(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
 
     function renderizar() {
       const mes = document.getElementById("mes_select").value || "2026-03";
@@ -221,12 +182,12 @@
 
       document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `
         <div class="linha-item"><span class="info-area"><b>${r.desc}</b></span>
-        <input type="number" step="0.01" style="width:100px" value="${r.valor.toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
+        <input type="number" step="0.01" style="width:90px" value="${r.valor.toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
         </div>`).join('');
 
       document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => `
         <div class="linha-item">
-          <input type="checkbox" style="width:20px; height:20px" ${f.pago ? 'checked' : ''} onchange="confirmarPagamentoFixa(${i}, this.checked)">
+          <input type="checkbox" style="width:22px;height:22px" ${f.pago ? 'checked' : ''} onchange="acionarCheck(${i}, this.checked)">
           <div class="info-area ${f.pago ? 'pago-texto' : ''}"><span>${f.categoria}</span><b>${formatar(f.valor)}</b></div>
           <button onclick="remover('fixas', ${i})" class="btn-del">×</button>
         </div>`).join('');
@@ -242,24 +203,49 @@
       atualizarResumo(mes);
     }
 
-    function confirmarPagamentoFixa(index, isChecked) {
-      const mes = document.getElementById("mes_select").value;
+    // GATILHO: SÓ PERGUNTA AO CLICAR NO CHECKBOX
+    function acionarCheck(index, isChecked) {
       if(isChecked) {
-        const opcao = prompt("Fonte?\n1 - Crédito\n2 - Débito (Auto)\n3 - Extra");
-        let meio = (opcao==="1")?'cartao':(opcao==="2")?((new Date().getDate()<=15)?'adiantamento':'salario'):'extra';
-        dados[mes].fixas[index].pago = true;
-        dados[mes].fixas[index].meio = meio;
-      } else { dados[mes].fixas[index].pago = false; }
+        pendentePagamento = { tipo: 'fixas', index: index };
+        document.getElementById('modal-fonte').style.display = 'flex';
+      } else {
+        const mes = document.getElementById("mes_select").value;
+        dados[mes].fixas[index].pago = false;
+        dados[mes].fixas[index].meio = '';
+        salvar();
+      }
+    }
+
+    function escolherFonte(fonte) {
+      const mes = document.getElementById("mes_select").value;
+      let meioReal = fonte;
+      if(fonte === 'auto') meioReal = (new Date().getDate() <= 15) ? 'adiantamento' : 'salario';
+      
+      if(pendentePagamento.tipo === 'fatura') {
+          dados[mes].pagamentosFatura.push({valor: pendentePagamento.valor, fonte: meioReal});
+      } else {
+          dados[mes][pendentePagamento.tipo][pendentePagamento.index].pago = true;
+          dados[mes][pendentePagamento.tipo][pendentePagamento.index].meio = meioReal;
+      }
+      fecharModal();
       salvar();
+    }
+
+    function fecharModal() { 
+        document.getElementById('modal-fonte').style.display = 'none'; 
+        renderizar(); 
     }
 
     function atualizarResumo(mes) {
       const info = dados[mes];
       let vEx=0, vAd=0, vSa=0, pEx=0, pAd=0, pSa=0, gCa=0, pgFa=0;
 
+      // SEPARAÇÃO RIGOROSA DE RECEITAS
       info.receitas.forEach(r => {
         const n = r.desc.toLowerCase();
-        if(n.includes("adiant")) vAd += r.valor; else if(n.includes("salario")) vSa += r.valor; else vEx += r.valor;
+        if(n.includes("adiant")) vAd += r.valor; 
+        else if(n.includes("salario")) vSa += r.valor; 
+        else vEx += r.valor; // Se não tem "adiant" nem "salario", é EXTRA purificado.
       });
 
       info.fixas.forEach(f => {
@@ -297,38 +283,38 @@
       pintarBarra("bar-cartao", usado, dados.config.limiteCartao);
     }
 
-    function pintarBarra(id, gasto, total) {
+    function pintarBarra(id, g, t) {
       const el = document.getElementById(id);
-      const pct = total > 0 ? Math.min((gasto/total)*100, 100) : 0;
+      const pct = t > 0 ? Math.min((g/t)*100, 100) : 0;
       el.style.width = pct + "%";
-      if(pct <= 50) el.style.backgroundColor = "var(--green)";
-      else if(pct <= 80) el.style.backgroundColor = "var(--orange)";
-      else el.style.backgroundColor = "var(--red)";
+      el.style.backgroundColor = pct <= 50 ? "var(--green)" : pct <= 80 ? "var(--orange)" : "var(--red)";
     }
 
     function pagarFatura() {
       const v = parseFloat(prompt("Valor:"))||0; if(v <= 0) return;
-      const opcao = prompt("1 - Débito (Auto)\n2 - Extra");
-      let fonte = (opcao === "1") ? ((new Date().getDate() <= 15) ? 'adiantamento' : 'salario') : 'extra';
-      dados[document.getElementById("mes_select").value].pagamentosFatura.push({valor: v, fonte: fonte});
-      salvar();
+      pendentePagamento = { tipo: 'fatura', valor: v };
+      document.getElementById('modal-fonte').style.display = 'flex';
     }
 
     function addItem(tipo) {
       let n = prompt("Descrição:"); if(!n) return;
-      n = capitalizar(n);
       const v = parseFloat(prompt("Valor:"))||0;
-      const opcao = prompt("1 - Crédito\n2 - Débito (Auto)\n3 - Extra");
-      let meio = (opcao==="1")?'cartao':(opcao==="2")?((new Date().getDate()<=15)?'adiantamento':'salario'):'extra';
-      dados[document.getElementById("mes_select").value][tipo].push({categoria:n, valor:v, meio:meio, pago:(tipo==='variaveis')});
-      salvar();
+      if(tipo === 'variaveis') {
+          pendentePagamento = { tipo: 'variaveis', desc: cap(n), valor: v };
+          document.getElementById('modal-fonte').style.display = 'flex';
+          // Para variáveis, criamos o objeto já no escolherFonte
+          dados[document.getElementById("mes_select").value].variaveis.push({categoria:cap(n), valor:v, meio:'', pago:true});
+          pendentePagamento.index = dados[document.getElementById("mes_select").value].variaveis.length - 1;
+      } else {
+          dados[document.getElementById("mes_select").value].fixas.push({categoria:cap(n), valor:v, meio:'', pago:false});
+          salvar();
+      }
     }
 
     function addReceita() {
       let n = prompt("Nome:"); if(!n) return;
-      n = capitalizar(n);
       const v = parseFloat(prompt("Valor:"))||0;
-      dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:v});
+      dados[document.getElementById("mes_select").value].receitas.push({desc:cap(n), valor:v});
       salvar();
     }
 
@@ -342,11 +328,10 @@
       });
     }
 
-    function mudarAba(event, aba) {
+    function mudarAba(e, aba) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.getElementById(`aba-${aba}`).classList.add('active');
-      event.currentTarget.classList.add('active');
+      document.getElementById(`aba-${aba}`).classList.add('active'); e.currentTarget.classList.add('active');
     }
 
     function remover(t, i) { if(confirm("Remover?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
