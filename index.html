@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>MS Finanças Cloud</title>
-  <link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="/Financas_Mobile/manifest.json">
   <meta name="theme-color" content="#0078d4">
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -16,14 +16,13 @@
     * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; touch-action: manipulation; }
     body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; }
     
-    /* Tela de Login */
+    /* Login */
     #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .login-box { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; font-size: 1rem; }
-    .btn-login { width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-    .btn-login:active { transform: scale(0.98); opacity: 0.8; }
+    .login-box { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center; }
+    .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; }
+    .btn-login { width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; margin-top: 10px; }
 
-    /* App Content */
+    /* App */
     #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .sync-status { font-size: 0.65rem; color: #aaa; background: #333; padding: 4px 8px; border-radius: 10px; }
@@ -45,6 +44,7 @@
     .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 30px; height: 30px; }
     
     select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 10px; border-radius: 8px; width: 100%; margin-bottom: 15px; }
+    #btn-instalar { display: none; width: 100%; padding: 12px; background: var(--blue); color: white; border: none; font-weight: 800; margin-bottom: 10px; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -60,6 +60,8 @@
   </div>
 
   <div id="app-content">
+    <button id="btn-instalar" onclick="dispararInstalacao()">📲 INSTALAR NO TABLET</button>
+    
     <header>
       <div style="display:flex; flex-direction:column">
         <span style="color:var(--blue); font-weight:800; font-size:0.9rem">MS INFORMÁTICA</span>
@@ -129,7 +131,6 @@
     const db = firebase.firestore();
     let dados = {};
 
-    // Sincronização e Login
     async function autenticar() {
       const email = document.getElementById('login-email').value;
       const senha = document.getElementById('login-senha').value;
@@ -200,7 +201,7 @@
 
     function atualizarResumo(mes) {
       const info = dados[mes];
-      let vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0;
+      let vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0;
 
       info.receitas.forEach(r => {
         const n = r.desc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -247,7 +248,28 @@
     function addDespesaFixa() { const n = prompt("Conta:"); if(n){ const v = parseFloat(prompt("Valor:"))||0; dados[document.getElementById("mes_select").value].fixas.push({categoria:n, valor:v, meio:'debito'}); salvar(); } }
     function removerItem(t, i) { if(confirm("Remover?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
 
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
+    // --- REGISTRO DO SERVICE WORKER CORRIGIDO PARA GITHUB ---
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/Financas_Mobile/sw.js')
+        .then(reg => console.log("SW OK:", reg.scope))
+        .catch(err => console.log("SW ERRO:", err));
+    }
+
+    // --- LÓGICA DE INSTALAÇÃO PWA ---
+    let promptInstalacao;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      promptInstalacao = e;
+      document.getElementById('btn-instalar').style.display = 'block';
+    });
+
+    async function dispararInstalacao() {
+      if (!promptInstalacao) return;
+      promptInstalacao.prompt();
+      const { outcome } = await promptInstalacao.userChoice;
+      if (outcome === 'accepted') document.getElementById('btn-instalar').style.display = 'none';
+      promptInstalacao = null;
+    }
   </script>
 </body>
 </html>
