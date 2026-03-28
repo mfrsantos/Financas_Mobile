@@ -1,3 +1,4 @@
+//Versão 4.0
 const CACHE_NAME = 'ms-financas-v3.2';
 
 // Lista de ativos com o caminho do repositório
