@@ -1,50 +1,48 @@
-//Versão 5.2 - Mudanças no Layout e Inclusão de grafico e export PDF
-const CACHE_NAME = 'ms-financas-v3.2';
-
-// Lista de ativos com o caminho do repositório
-const ASSETS = [
-  '/Financas_Mobile/',
-  '/Financas_Mobile/index.html',
-  '/Financas_Mobile/manifest.json',
-  'https://cdn-icons-png.flaticon.com/512/5501/5501375.png'
+const CACHE_NAME = 'financas-ms-v1';
+const ASSETS_TO_CACHE = [
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json',
+  './icon-192x192.png',
+  './icon-512x512.png'
 ];
 
-// Instalação e Cache
-self.addEventListener('install', (e) => {
-  e.waitUntil(
+// Instalação: Salva arquivos no cache
+self.addEventListener('install', (event) => {
+  event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('SW: A criar cache de ativos');
-      return cache.addAll(ASSETS);
+      console.log('Cache aberto: salvando arquivos estáticos');
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
+  // Força o Service Worker atual a se tornar ativo imediatamente
   self.skipWaiting();
 });
 
-// Ativação e Limpeza de caches antigos
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) {
-          console.log('SW: A remover cache antigo', key);
-          return caches.delete(key);
-        }
-      }));
+// Ativação: Remove caches antigos de versões anteriores
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log('Removendo cache antigo:', cache);
+            return caches.delete(cache);
+          }
+        })
+      );
     })
   );
   return self.clients.claim();
 });
 
-// Interceção de pedidos (Fetch)
-self.addEventListener('fetch', (e) => {
-  // Ignorar pedidos do Firebase para não bloquear o Login
-  if (e.request.url.includes('googleapis') || e.request.url.includes('firebase')) {
-    return;
-  }
-
-  e.respondWith(
-    caches.match(e.request).then((res) => {
-      return res || fetch(e.request);
+// Estratégia de busca: Tenta a rede primeiro, se falhar (offline), usa o cache
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
