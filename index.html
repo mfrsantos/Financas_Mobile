@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.2 - UI Aprimorada</title>
+  <title>MS Finanças v6.3 - Gestão de Alertas</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -18,33 +18,14 @@
     * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; padding-bottom: 30px; }
     
-    /* Inputs Maiores nos Modais */
-    .modal-content input { 
-      width: 100%; 
-      padding: 18px; /* Aumentado para facilitar o toque */
-      margin-bottom: 15px; 
-      background: #1a1a1a; 
-      border: 1px solid var(--border); 
-      color: white; 
-      border-radius: 12px; 
-      font-size: 1.1rem; /* Fonte maior */
-    }
+    /* Alertas de Vencimento */
+    .alerta-vencido { color: var(--red) !important; font-weight: 800; }
+    .alerta-hoje { color: var(--yellow) !important; font-weight: 800; }
+    .badge-aviso { background: var(--orange); color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; text-align: center; display: none; }
 
-    .modal-btn { 
-      width: 100%; 
-      padding: 18px; 
-      margin: 8px 0; 
-      border: none; 
-      border-radius: 12px; 
-      color: white; 
-      font-weight: bold; 
-      font-size: 1rem; 
-      cursor: pointer; 
-    }
-
-    /* Restante do layout */
-    #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .login-box { background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--blue); text-align: center; }
+    /* UI Estilizada */
+    .modal-content input, .modal-content select { width: 100%; padding: 18px; margin-bottom: 15px; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 12px; font-size: 1.1rem; }
+    .modal-btn { width: 100%; padding: 18px; margin: 8px 0; border: none; border-radius: 12px; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
     #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
     .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
     .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.65rem; }
@@ -58,47 +39,48 @@
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
     .modal-content { background: var(--card-bg); border: 2px solid var(--blue); padding: 30px; border-radius: 25px; width: 95%; max-width: 380px; }
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .linha-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #383838; gap: 10px; font-size: 0.95rem; }
+    .linha-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #383838; gap: 10px; font-size: 0.9rem; }
     .btn-action { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: 800; color: white; cursor: pointer; margin-top: 10px; font-size: 1rem; }
     .btn-del { background: var(--red); border: none; color: white; border-radius: 10px; width: 35px; height: 35px; font-weight: bold; }
-    .pago-texto { text-decoration: line-through; color: #666; }
+    .pago-texto { text-decoration: line-through; color: #666 !important; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 15px; border-radius: 12px; width: 100%; font-size: 1rem; }
+    #mes_select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 15px; border-radius: 12px; width: 100%; font-size: 1rem; }
     .chart-container { background: var(--card-bg); padding: 20px; border-radius: 20px; margin-top: 15px; border: 1px solid var(--border); display: flex; justify-content: center; }
   </style>
 </head>
 <body>
 
-  <div id="tela-login">
-    <div class="login-box">
+  <div id="modal-input" class="modal">
+    <div class="modal-content">
+      <h3 id="input-titulo" style="margin-bottom:20px; color:var(--blue)">Novo Registro</h3>
+      <input type="text" id="in-desc" placeholder="Descrição">
+      <input type="number" step="0.01" id="in-valor" placeholder="Valor 0,00" inputmode="decimal">
+      <div id="campo-vencimento" style="display:none;">
+        <label style="font-size:0.7rem; color:#888;">Data de Vencimento:</label>
+        <input type="date" id="in-data">
+      </div>
+      <button class="modal-btn" style="background:var(--blue)" onclick="confirmarInput()">PROSSEGUIR</button>
+      <button class="modal-btn" style="background:#444" onclick="fecharModais()">CANCELAR</button>
+    </div>
+  </div>
+
+  <div id="tela-login" style="position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+    <div class="login-box" style="background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--blue); text-align: center;">
       <h2 style="color:var(--blue); margin-bottom:20px;">MS FINANÇAS</h2>
       <input type="email" id="l-email" placeholder="E-mail" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #444; background:#111; color:#fff;">
       <input type="password" id="l-pass" placeholder="Senha" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #444; background:#111; color:#fff;">
       <button class="btn-action" style="background:var(--blue)" onclick="autenticar('login')">ENTRAR</button>
       <button class="btn-action" style="background:#444; margin-top:10px;" onclick="autenticar('cadastro')">CRIAR CONTA</button>
-      <p id="msg-login" style="font-size: 0.75rem; color: var(--red); margin-top: 15px;"></p>
-    </div>
-  </div>
-
-  <div id="modal-input" class="modal">
-    <div class="modal-content">
-      <h3 id="input-titulo" style="margin-bottom:20px; color:var(--blue)">Novo Registro</h3>
-      <input type="text" id="in-desc" placeholder="Descrição da conta">
-      <input type="number" step="0.01" id="in-valor" placeholder="Valor 0,00" inputmode="decimal">
-      <button class="modal-btn" style="background:var(--blue)" onclick="confirmarInput()">PROSSEGUIR</button>
-      <button class="modal-btn" style="background:#444" onclick="fecharModais()">CANCELAR</button>
     </div>
   </div>
 
   <div id="modal-fonte" class="modal">
     <div class="modal-content">
       <h3 style="color:var(--yellow); margin-bottom:10px;">Pagar via:</h3>
-      <p id="info-pagamento" style="font-size:1rem; color:#ccc; margin-bottom:25px; border-bottom:1px solid #444; padding-bottom:10px;"></p>
-      
+      <p id="info-pagamento" style="font-size:1rem; color:#ccc; margin-bottom:25px;"></p>
       <button id="btn-modal-cartao" class="modal-btn" style="background:var(--red)" onclick="setFonte('cartao')">💳 CRÉDITO</button>
-      
-      <button class="modal-btn" style="background:var(--blue)" onclick="setFonte('auto')">🏦 DÉBITO (Salário/Adiant.)</button>
+      <button class="modal-btn" style="background:var(--blue)" onclick="setFonte('auto')">🏦 DÉBITO</button>
       <button class="modal-btn" style="background:var(--green)" onclick="setFonte('extra')">💎 EXTRA</button>
       <button class="modal-btn" style="background:#444; margin-top:10px;" onclick="fecharModais()">CANCELAR</button>
     </div>
@@ -109,6 +91,8 @@
       <span style="color:var(--blue); font-weight:800; font-size:1.1rem;">MS FINANÇAS</span>
       <button onclick="sair()" style="background:none; border:none; color:var(--red); font-weight:bold;">SAIR</button>
     </header>
+
+    <div id="aviso-geral" class="badge-aviso"></div>
 
     <select id="mes_select" onchange="renderizar();" style="margin-bottom:15px;"></select>
 
@@ -127,9 +111,7 @@
         <div class="card"><h2>💰 Salário</h2><p id="r-salario">R$ 0,00</p><div class="barra-bg"><div id="b-salario" class="barra-fill"></div></div></div>
         <div class="card"><h2>💳 Cartão</h2><div id="r-cartao"></div><div class="barra-bg"><div id="b-cartao" class="barra-fill"></div></div></div>
       </div>
-      <div class="chart-container">
-        <canvas id="meuGrafico" style="max-width: 280px; max-height: 280px;"></canvas>
-      </div>
+      <div class="chart-container"><canvas id="meuGrafico" style="max-width: 280px; max-height: 280px;"></canvas></div>
     </main>
 
     <main id="aba-receitas" class="tab-content">
@@ -137,22 +119,21 @@
     </main>
 
     <main id="aba-despesas" class="tab-content">
-      <div class="secao"><h3>Fixas</h3><div id="l-fixas"></div><button onclick="abrirInput('fixas')" class="btn-action" style="background:var(--blue)">+ CONTA FIXA</button></div>
+      <div class="secao"><h3>Fixas (Mensais)</h3><div id="l-fixas"></div><button onclick="abrirInput('fixas')" class="btn-action" style="background:var(--blue)">+ CONTA FIXA</button></div>
       <div class="secao"><h3>Variáveis</h3><div id="l-vars"></div><button onclick="abrirInput('vars')" class="btn-action" style="background:var(--yellow); color:#000">+ CONTA VARIÁVEL</button></div>
     </main>
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
         <label style="font-size:0.8rem; color:#888">Limite do Cartão:</label>
-        <input type="number" step="0.01" id="c-limite" style="width:100%; background:#1a1a1a; color:white; border:1px solid var(--border); padding:15px; border-radius:12px; margin-top:8px; font-size:1.1rem;" onchange="dados.config.limite=parseFloat(this.value);save()">
+        <input type="number" step="0.01" id="c-limite" style="width:100%; background:#1a1a1a; color:white; border:1px solid var(--border); padding:15px; border-radius:12px; margin-top:8px;" onchange="dados.config.limite=parseFloat(this.value);save()">
       </div>
       <div class="secao"><h3>Pagar Fatura</h3><div id="l-pgs"></div><button onclick="abrirInput('pgs')" class="btn-action" style="background:var(--blue)">+ REGISTRAR PAGAMENTO</button></div>
     </main>
 
     <main id="aba-relatorio" class="tab-content">
       <div class="secao" style="text-align: center; padding: 40px 20px;">
-        <h3>Gerar Relatório Profissional</h3>
-        <p style="color:#888; margin-bottom:20px;">O PDF conterá todas as entradas e saídas do mês selecionado.</p>
+        <h3>Exportar Relatório Mensal</h3>
         <button class="btn-action" style="background:var(--orange)" onclick="gerarPDF()">BAIXAR PDF</button>
       </div>
     </main>
@@ -163,8 +144,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    let dados = {}, chartInstancia = null;
-    let pendente = { tipo: '', i: 0, v: 0, d: '' };
+    let dados = {}, chartInstancia = null, pendente = { tipo: '', i: 0, v: 0, d: '', data: '' };
 
     const fmt = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
 
@@ -176,169 +156,95 @@
 
     function sync(uid) {
       db.collection("usuarios").doc(uid).onSnapshot(doc => {
-        if(doc.exists) {
-          dados = doc.data();
-          if(!dados.config) dados.config = { limite: 2000 };
-          document.getElementById('c-limite').value = (dados.config.limite || 0).toFixed(2);
-          popMeses(); renderizar();
-        } else { dados = init(); save(); }
+        if(doc.exists) { dados = doc.data(); if(!dados.config) dados.config = { limite: 2000 }; popMeses(); renderizar(); } 
+        else { dados = init(); save(); }
       });
     }
-
     async function save() { await db.collection("usuarios").doc(auth.currentUser.uid).set(dados); }
-    async function autenticar(modo) {
-      const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
-      try { modo === 'login' ? await auth.signInWithEmailAndPassword(e, p) : await auth.createUserWithEmailAndPassword(e, p);
-      } catch (err) { document.getElementById('msg-login').innerText = err.message; }
-    }
-
-    function init() {
-      const b = { config: { limite: 2000 } };
-      for(let m=1; m<=12; m++) b[`2026-${String(m).padStart(2,'0')}`] = { receitas: [{desc:'Adiantamento', valor:0},{desc:'Salário', valor:0}], fixas: [], variaveis: [], pgs: [] };
-      return b;
-    }
 
     function renderizar() {
       const mes = document.getElementById("mes_select").value || "2026-03";
       const info = dados[mes]; if(!info) return;
 
+      const hoje = new Date().toISOString().split('T')[0];
+      let urgentes = 0;
+
+      // Render Receitas
       document.getElementById("l-receitas").innerHTML = (info.receitas || []).map((r, i) => `
         <div class="linha-item"><b style="flex:1">${r.desc}</b> 
         <input type="number" step="0.01" style="width:110px; padding:10px; border-radius:8px; border:1px solid #444; background:#111; color:#fff;" value="${Number(r.valor).toFixed(2)}" 
         onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);save()"></div>`).join('');
 
-      document.getElementById("l-fixas").innerHTML = (info.fixas || []).map((f, i) => `
-        <div class="linha-item">
-          <input type="checkbox" style="width:28px;height:28px" ${f.pago?'checked':''} onchange="if(this.checked){pendente={tipo:'fixas',i:${i}}; abrirFonteModal('Pagar: '+dados['${mes}'].fixas[${i}].desc, dados['${mes}'].fixas[${i}].valor, false);}else{dados['${mes}'].fixas[${i}].pago=false;save()}">
-          <span style="flex:1" class="${f.pago?'pago-texto':''}">${f.desc} - ${fmt(f.valor)}</span>
-          <button class="btn-del" onclick="del('fixas',${i})">×</button>
-        </div>`).join('');
+      // Render Fixas com Lógica de Alerta (Ordenadas por data)
+      const fixasOrdenadas = (info.fixas || []).sort((a,b) => (a.data > b.data ? 1 : -1));
+      document.getElementById("l-fixas").innerHTML = fixasOrdenadas.map((f, realIdx) => {
+        const i = info.fixas.indexOf(f); // Pegar índice original para o checkbox
+        let classeAlerta = "";
+        if (!f.pago && f.data) {
+          if (f.data < hoje) { classeAlerta = "alerta-vencido"; urgentes++; }
+          else if (f.data === hoje) { classeAlerta = "alerta-hoje"; urgentes++; }
+        }
+        const dataFormat = f.data ? f.data.split('-').reverse().slice(0,2).join('/') : '--/--';
 
-      document.getElementById("l-vars").innerHTML = (info.variaveis || []).map((v, i) => `
-        <div class="linha-item"><span style="flex:1">${v.desc} - ${fmt(v.valor)} (${v.meio})</span><button class="btn-del" onclick="del('variaveis',${i})">×</button></div>`).join('');
+        return `
+          <div class="linha-item">
+            <input type="checkbox" style="width:28px;height:28px" ${f.pago?'checked':''} onchange="marcarPago(${i})">
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <span class="${f.pago?'pago-texto':''} ${classeAlerta}">${f.desc} - ${fmt(f.valor)}</span>
+                <small style="font-size:0.65rem; color:#888;">Venc: ${dataFormat}</small>
+            </div>
+            <button class="btn-del" onclick="del('fixas',${i})">×</button>
+          </div>`;
+      }).join('');
 
-      document.getElementById("l-pgs").innerHTML = (info.pgs || []).map((p, i) => `
-        <div class="linha-item"><span style="flex:1">Fatura via ${p.fonte} - ${fmt(p.valor)}</span><button class="btn-del" onclick="del('pgs',${i})">×</button></div>`).join('');
+      // Aviso Geral no Topo
+      const aviso = document.getElementById("aviso-geral");
+      if(urgentes > 0) { aviso.innerText = `⚠️ Você tem ${urgentes} conta(s) vencendo hoje ou atrasada(s)!`; aviso.style.display = "block"; }
+      else { aviso.style.display = "none"; }
+
+      // Variáveis e Pgs
+      document.getElementById("l-vars").innerHTML = (info.variaveis || []).map((v, i) => `<div class="linha-item"><span style="flex:1">${v.desc} - ${fmt(v.valor)} (${v.meio})</span><button class="btn-del" onclick="del('variaveis',${i})">×</button></div>`).join('');
+      document.getElementById("l-pgs").innerHTML = (info.pgs || []).map((p, i) => `<div class="linha-item"><span style="flex:1">Fatura via ${p.fonte} - ${fmt(p.valor)}</span><button class="btn-del" onclick="del('pgs',${i})">×</button></div>`).join('');
 
       resumo(mes);
     }
 
-    function abrirFonteModal(texto, valor, isFatura) {
-      document.getElementById('info-pagamento').innerText = `${texto}: ${fmt(valor)}`;
-      // REGRA: Se for pagamento de fatura, esconde a opção de pagar com crédito
-      document.getElementById('btn-modal-cartao').style.display = isFatura ? 'none' : 'block';
-      document.getElementById('modal-fonte').style.display = 'flex';
-    }
-
-    function resumo(mes) {
-      const info = dados[mes];
-      let vEx=0, vAd=0, vSa=0, pEx=0, pAd=0, pSa=0, gCa=0, pgF=0, dFix=0, dVar=0;
-
-      (info.receitas || []).forEach(r => { 
-        const n = (r.desc || "").toLowerCase().trim();
-        if(n === "adiantamento" || n.includes("adiantam")) vAd += r.valor;
-        else if(n === "salario" || n === "salário") vSa += r.valor;
-        else vEx += r.valor;
-      });
-
-      (info.fixas || []).forEach(f => { 
-        dFix += f.valor;
-        if(f.pago) { 
-          if(f.meio === 'extra') pEx += f.valor; else if(f.meio === 'adiantamento') pAd += f.valor; 
-          else if(f.meio === 'salario') pSa += f.valor; else if(f.meio === 'cartao') gCa += f.valor;
-        }
-      });
-
-      (info.variaveis || []).forEach(v => { 
-        dVar += v.valor;
-        if(v.meio === 'cartao') gCa += v.valor; else if(v.meio === 'extra') pEx += v.valor; 
-        else if(v.meio === 'adiantamento') pAd += v.valor; else pSa += v.valor; 
-      });
-
-      (info.pgs || []).forEach(p => { 
-        pgF += p.valor; if(p.fonte === 'extra') pEx += p.valor; else if(p.fonte === 'adiantamento') pAd += p.valor; else pSa += p.valor; 
-      });
-
-      const limite = dados.config.limite || 0;
-      const utilizado = gCa - pgF;
-      const disponivel = limite - utilizado;
-
-      document.getElementById("r-extra").innerText = fmt(vEx - pEx);
-      document.getElementById("r-adiant").innerText = fmt(vAd - pAd);
-      document.getElementById("r-salario").innerText = fmt(vSa - pSa);
-      document.getElementById("r-cartao").innerHTML = `<div style="font-size:0.85rem">Utilizado: <span style="color:var(--red)">${fmt(utilizado)}</span></div><div style="font-size:0.7rem; color:#aaa;">Disp: ${fmt(disponivel)}</div>`;
-
-      const pb = (id, g, t) => { const el = document.getElementById(id); const p = t > 0 ? Math.min((g/t)*100, 100) : 0; el.style.width = p + "%"; el.style.backgroundColor = p <= 50 ? "var(--green)" : p <= 80 ? "var(--orange)" : "var(--red)"; };
-      pb("b-extra", pEx, vEx); pb("b-adiant", pAd, vAd); pb("b-salario", pSa, vSa); pb("b-cartao", utilizado, limite);
-
-      atualizarGrafico(vEx + vAd + vSa, dFix + dVar);
-    }
-
-    function atualizarGrafico(renda, despesa) {
-      const ctx = document.getElementById('meuGrafico').getContext('2d');
-      if (chartInstancia) chartInstancia.destroy();
-      chartInstancia = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Renda Total', 'Despesa Total'],
-          datasets: [{
-            data: [renda.toFixed(2), despesa.toFixed(2)],
-            backgroundColor: ['#107c10', '#d13438'],
-            borderColor: '#1c1c1c',
-            borderWidth: 2
-          }]
-        },
-        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 12 } } } } }
-      });
-    }
-
-    function gerarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const mes = document.getElementById("mes_select").value;
-      const info = dados[mes];
-      doc.setFontSize(18); doc.text("Relatório Mensal - MS Finanças", 14, 20);
-      doc.setFontSize(12); doc.text(`Mês Referência: ${mes}`, 14, 30);
-      const tableData = [];
-      info.receitas.forEach(r => tableData.push([r.desc, fmt(r.valor), "Entrada"]));
-      info.fixas.forEach(f => tableData.push([f.desc, fmt(f.valor), f.pago ? "Saída (Paga)" : "Saída (Pendente)"]));
-      info.variaveis.forEach(v => tableData.push([v.desc, fmt(v.valor), "Saída (Variável)"]));
-      doc.autoTable({ startY: 40, head: [['Descrição', 'Valor', 'Tipo']], body: tableData, theme: 'striped' });
-      doc.save(`Relatorio_${mes}.pdf`);
-    }
-
-    function tab(e, n) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.getElementById(`aba-${n}`).classList.add('active'); e.currentTarget.classList.add('active');
-    }
-    function popMeses() {
-      const s = document.getElementById("mes_select"); if(s.options.length > 0) return;
-      ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m, i) => {
-        let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
-        if(i+1 === new Date().getMonth()+1) o.selected = true; s.appendChild(o);
-      });
-    }
     function abrirInput(tipo) {
       pendente.tipo = tipo;
+      document.getElementById('campo-vencimento').style.display = tipo === 'fixas' ? 'block' : 'none';
       document.getElementById('in-desc').style.display = tipo === 'pgs' ? 'none' : 'block';
       document.getElementById('in-desc').value = ""; document.getElementById('in-valor').value = "";
       document.getElementById('modal-input').style.display = 'flex';
     }
-    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+
     function confirmarInput() {
       const d = document.getElementById('in-desc').value || "Pagamento";
       const v = parseFloat(document.getElementById('in-valor').value);
+      const dataV = document.getElementById('in-data').value;
       const mes = document.getElementById("mes_select").value;
       if(isNaN(v)) return;
-      pendente.d = d; pendente.v = v;
+      pendente.d = d; pendente.v = v; pendente.data = dataV;
       document.getElementById('modal-input').style.display = 'none';
       if(pendente.tipo === 'receitas') { dados[mes].receitas.push({desc:d, valor:v}); save(); fecharModais(); }
-      else if(pendente.tipo === 'fixas') { dados[mes].fixas.push({desc:d, valor:v, pago:false}); save(); fecharModais(); }
-      else { 
-          // Se for tipo 'pgs' (Pagamento de Fatura), chama a função com isFatura = true
-          abrirFonteModal(pendente.d, pendente.v, pendente.tipo === 'pgs'); 
-      }
+      else if(pendente.tipo === 'fixas') { dados[mes].fixas.push({desc:d, valor:v, pago:false, data:dataV}); save(); fecharModais(); }
+      else { abrirFonteModal(d, v, pendente.tipo === 'pgs'); }
+    }
+
+    function marcarPago(i) {
+        const mes = document.getElementById("mes_select").value;
+        if(!dados[mes].fixas[i].pago) {
+            pendente = { tipo: 'fixas', i: i };
+            abrirFonteModal('Pagar: '+dados[mes].fixas[i].desc, dados[mes].fixas[i].valor, false);
+        } else {
+            dados[mes].fixas[i].pago = false; save();
+        }
+    }
+
+    // (Funções auxiliares de fonte, resumo, gráfico e PDF permanecem iguais à v6.2)
+    function abrirFonteModal(texto, valor, isFatura) {
+      document.getElementById('info-pagamento').innerText = `${texto}: ${fmt(valor)}`;
+      document.getElementById('btn-modal-cartao').style.display = isFatura ? 'none' : 'block';
+      document.getElementById('modal-fonte').style.display = 'flex';
     }
     function setFonte(f) {
       const mes = document.getElementById("mes_select").value;
@@ -348,8 +254,31 @@
       else if(pendente.tipo === 'fixas') { dados[mes].fixas[pendente.i].pago = true; dados[mes].fixas[pendente.i].meio = fReal; }
       fecharModais(); save();
     }
+    function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+    function resumo(mes) {
+      const info = dados[mes]; let vEx=0, vAd=0, vSa=0, pEx=0, pAd=0, pSa=0, gCa=0, pgF=0, dFix=0, dVar=0;
+      (info.receitas || []).forEach(r => { const n = (r.desc || "").toLowerCase().trim(); if(n.includes("adiantam")) vAd += r.valor; else if(n.includes("salario") || n.includes("salário")) vSa += r.valor; else vEx += r.valor; });
+      (info.fixas || []).forEach(f => { dFix += f.valor; if(f.pago) { if(f.meio === 'extra') pEx += f.valor; else if(f.meio === 'adiantamento') pAd += f.valor; else if(f.meio === 'salario') pSa += f.valor; else if(f.meio === 'cartao') gCa += f.valor; } });
+      (info.variaveis || []).forEach(v => { dVar += v.valor; if(v.meio === 'cartao') gCa += v.valor; else if(v.meio === 'extra') pEx += v.valor; else if(v.meio === 'adiantamento') pAd += v.valor; else pSa += v.valor; });
+      (info.pgs || []).forEach(p => { pgF += p.valor; if(p.fonte === 'extra') pEx += p.valor; else if(p.fonte === 'adiantamento') pAd += p.valor; else pSa += p.valor; });
+      const limite = dados.config.limite || 0, utilizado = gCa - pgF, disponivel = limite - utilizado;
+      document.getElementById("r-extra").innerText = fmt(vEx - pEx); document.getElementById("r-adiant").innerText = fmt(vAd - pAd); document.getElementById("r-salario").innerText = fmt(vSa - pSa);
+      document.getElementById("r-cartao").innerHTML = `<div style="font-size:0.85rem">Utilizado: <span style="color:var(--red)">${fmt(utilizado)}</span></div><div style="font-size:0.7rem; color:#aaa;">Disp: ${fmt(disponivel)}</div>`;
+      const pb = (id, g, t) => { const el = document.getElementById(id); const p = t > 0 ? Math.min((g/t)*100, 100) : 0; el.style.width = p + "%"; el.style.backgroundColor = p <= 50 ? "var(--green)" : p <= 80 ? "var(--orange)" : "var(--red)"; };
+      pb("b-extra", pEx, vEx); pb("b-adiant", pAd, vAd); pb("b-salario", pSa, vSa); pb("b-cartao", utilizado, limite);
+      atualizarGrafico(vEx + vAd + vSa, dFix + dVar);
+    }
+    function atualizarGrafico(renda, despesa) {
+      const ctx = document.getElementById('meuGrafico').getContext('2d');
+      if (chartInstancia) chartInstancia.destroy();
+      chartInstancia = new Chart(ctx, { type: 'doughnut', data: { labels: ['Renda', 'Contas'], datasets: [{ data: [renda.toFixed(2), despesa.toFixed(2)], backgroundColor: ['#107c10', '#d13438'], borderColor: '#1c1c1c', borderWidth: 2 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } } });
+    }
+    function gerarPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF(); const mes = document.getElementById("mes_select").value; const info = dados[mes]; doc.text("Relatório - MS Finanças", 14, 20); const tableData = []; info.receitas.forEach(r => tableData.push([r.desc, fmt(r.valor), "Entrada"])); info.fixas.forEach(f => tableData.push([f.desc, fmt(f.valor), f.pago ? "Saída (Paga)" : "Saída (Pendente)"])); info.variaveis.forEach(v => tableData.push([v.desc, fmt(v.valor), "Saída (Variável)"])); doc.autoTable({ startY: 30, head: [['Descrição', 'Valor', 'Tipo']], body: tableData }); doc.save(`Relatorio_${mes}.pdf`); }
+    function tab(e, n) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.getElementById(`aba-${n}`).classList.add('active'); e.currentTarget.classList.add('active'); }
+    function popMeses() { const s = document.getElementById("mes_select"); if(s.options.length > 0) return; ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m, i) => { let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m; if(i+1 === new Date().getMonth()+1) o.selected = true; s.appendChild(o); }); }
     function del(t, i) { if(confirm("Apagar?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
     function sair() { if(confirm("Sair?")) auth.signOut(); }
+    async function autenticar(modo) { const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value; try { modo === 'login' ? await auth.signInWithEmailAndPassword(e, p) : await auth.createUserWithEmailAndPassword(e, p); } catch (err) { alert(err.message); } }
   </script>
 </body>
 </html>
