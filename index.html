@@ -334,6 +334,14 @@
         try { modo === 'login' ? await auth.signInWithEmailAndPassword(e, p) : await auth.createUserWithEmailAndPassword(e, p); } 
         catch (err) { document.getElementById('msg-login').innerText = "Erro: " + err.message; } 
     }
+    // Registro do Service Worker para funcionamento Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW Ativo!', reg.scope))
+          .catch(err => console.log('Erro no SW:', err));
+  });
+}
   </script>
 </body>
 </html>
