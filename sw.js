@@ -1,4 +1,4 @@
-//Versão 5.0 - Mudanças no Layout e Inclusão de grafico e export PDF
+//Versão 5.1 - Mudanças no Layout e Inclusão de grafico e export PDF
 const CACHE_NAME = 'ms-financas-v3.2';
 
 // Lista de ativos com o caminho do repositório
