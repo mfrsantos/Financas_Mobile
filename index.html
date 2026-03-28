@@ -11,55 +11,104 @@
 
   <style>
     :root { --blue: #0078d4; --green: #107c10; --yellow: #ffb900; --orange: #d83b01; --red: #d13438; --bg: #1c1c1c; --card-bg: #2b2b2b; --border: #3c3c3c; }
-    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; }
     
-    /* Telas controladas apenas por CSS para evitar loop de refresh */
-    #tela-login { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 5000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    #app-content { display: none; padding: 15px; max-width: 800px; margin: 0 auto; padding-bottom: 100px; }
+    /* Telas */
+    #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
     
-    .login-box { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center; }
+    .login-box { background: var(--card-bg); padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; border: 1px solid var(--blue); text-align: center; }
     .login-box input { width: 100%; padding: 12px; margin: 8px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; }
-    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; height: 90px; }
-    .barra-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #333; }
+
+    /* Tabs */
+    .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.6rem; }
+    .tab-btn.active { background: #323232; color: var(--blue); }
+
+    /* Cards - Ajustados para não transbordar no tablet */
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .card { padding: 10px; border-radius: 10px; background: var(--card-bg); border: 1px solid var(--border); position: relative; overflow: hidden; height: 80px; display: flex; flex-direction: column; justify-content: center; }
+    .card h2 { margin: 0; font-size: 0.5rem; color: #b0b0b0; text-transform: uppercase; }
+    .card p { margin: 2px 0; font-size: 0.85rem; font-weight: 800; }
+    .barra-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: #333; }
     .barra-fill { height: 100%; width: 0%; transition: width 0.6s; }
+
+    /* Modal de Botões */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; }
-    .modal-content { background: var(--card-bg); border: 1px solid var(--blue); padding: 25px; border-radius: 20px; width: 90%; max-width: 320px; }
-    .btn-action { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 800; color: white; margin-top: 10px; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--blue); padding: 20px; border-radius: 15px; width: 85%; max-width: 300px; text-align: center; }
+    .modal-btn { width: 100%; padding: 14px; margin: 6px 0; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+
+    .secao { background: var(--card-bg); padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); }
+    .linha-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #383838; gap: 8px; font-size: 0.8rem; }
+    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; color: white; cursor: pointer; margin-top: 8px; }
+    
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+    input, select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 8px; border-radius: 6px; }
   </style>
 </head>
 <body>
 
   <div id="tela-login">
     <div class="login-box">
-      <h2 style="color:var(--blue)">MS FINANÇAS</h2>
-      <input type="email" id="login-email" placeholder="E-mail">
-      <input type="password" id="login-senha" placeholder="Senha">
-      <button class="btn-action" style="background:var(--blue)" onclick="autenticar()">ENTRAR</button>
+      <h2 style="color:var(--blue); margin-bottom:15px;">MS FINANÇAS</h2>
+      <input type="email" id="l-email" placeholder="E-mail">
+      <input type="password" id="l-pass" placeholder="Senha">
+      <button class="btn-action" style="background:var(--blue)" onclick="logar()">ENTRAR</button>
+    </div>
+  </div>
+
+  <div id="modal-fonte" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-top:0">Onde debitar?</h3>
+      <button class="modal-btn" style="background:var(--red)" onclick="setFonte('cartao')">💳 CARTÃO</button>
+      <button class="modal-btn" style="background:var(--blue)" onclick="setFonte('auto')">🏦 DÉBITO</button>
+      <button class="modal-btn" style="background:var(--green)" onclick="setFonte('extra')">💎 EXTRA</button>
+      <button class="modal-btn" style="background:#444" onclick="closeModal()">CANCELAR</button>
     </div>
   </div>
 
   <div id="app-content">
-    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <span style="color:var(--blue); font-weight:800;">MS FINANÇAS</span>
-      <button onclick="deslogar()" style="background:none; border:none; color:var(--red); font-weight:bold;">SAIR</button>
+    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <span style="color:var(--blue); font-weight:800; font-size:0.9rem;">MS FINANÇAS</span>
+      <button onclick="sair()" style="background:none; border:none; color:var(--red); font-weight:bold; font-size:0.7rem;">SAIR</button>
     </header>
-    <select id="mes_select" onchange="renderizar();" style="background:#1a1a1a; color:white; padding:10px; width:100%; border-radius:8px; margin-bottom:15px;"></select>
-    
-    <div class="cards-grid">
-      <div class="card"><h2>💎 Extra</h2><p id="res-extra">R$ 0,00</p><div class="barra-bg"><div id="bar-extra" class="barra-fill"></div></div></div>
-      <div class="card"><h2>📅 Adiant.</h2><p id="res-adiant">R$ 0,00</p><div class="barra-bg"><div id="bar-adiant" class="barra-fill"></div></div></div>
-      <div class="card"><h2>💰 Salário</h2><p id="res-salario">R$ 0,00</p><div class="barra-bg"><div id="bar-salario" class="barra-fill"></div></div></div>
-      <div class="card"><h2>💳 Cartão</h2><p id="res-cartao">R$ 0,00</p><div class="barra-bg"><div id="bar-cartao" class="barra-fill"></div></div></div>
-    </div>
 
-    <div style="margin-top:20px">
-        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--blue)">+ Adicionar Conta</button>
-        <div id="lista-fixas"></div>
-    </div>
+    <select id="mes_select" onchange="renderizar();" style="width:100%; margin-bottom:15px;"></select>
+
+    <nav class="tab-bar">
+      <button class="tab-btn active" onclick="tab(event, 'resumo')">RESUMO</button>
+      <button class="tab-btn" onclick="tab(event, 'receitas')">RECEITAS</button>
+      <button class="tab-btn" onclick="tab(event, 'despesas')">DESPESAS</button>
+      <button class="tab-btn" onclick="tab(event, 'cartao')">CARTÃO</button>
+    </nav>
+
+    <main id="aba-resumo" class="tab-content active">
+      <div class="cards-grid">
+        <div class="card"><h2>💎 Extra</h2><p id="r-extra">R$ 0,00</p><div class="barra-bg"><div id="b-extra" class="barra-fill"></div></div></div>
+        <div class="card"><h2>📅 Adiant.</h2><p id="r-adiant">R$ 0,00</p><div class="barra-bg"><div id="b-adiant" class="barra-fill"></div></div></div>
+        <div class="card"><h2>💰 Salário</h2><p id="r-salario">R$ 0,00</p><div class="barra-bg"><div id="b-salario" class="barra-fill"></div></div></div>
+        <div class="card"><h2>💳 Cartão</h2><p id="r-cartao">R$ 0,00</p><div class="barra-bg"><div id="b-cartao" class="barra-fill"></div></div></div>
+      </div>
+      <div class="secao" style="margin-top:15px">
+        <label style="font-size:0.7rem; color:#888">Limite Cartão:</label>
+        <input type="number" id="c-limite" style="width:100%" onchange="dados.config.limite=parseFloat(this.value);save()">
+      </div>
+    </main>
+
+    <main id="aba-receitas" class="tab-content">
+      <div class="secao"><div id="l-receitas"></div><button onclick="addRec()" class="btn-action" style="background:var(--green)">+ RECEITA</button></div>
+    </main>
+
+    <main id="aba-despesas" class="tab-content">
+      <div class="secao"><h3>Fixas</h3><div id="l-fixas"></div><button onclick="addFixa()" class="btn-action" style="background:var(--blue)">+ FIXA</button></div>
+      <div class="secao"><h3>Variáveis</h3><div id="l-vars"></div><button onclick="addVar()" class="btn-action" style="background:var(--yellow); color:#000">+ VARIÁVEL</button></div>
+    </main>
+
+    <main id="aba-cartao" class="tab-content">
+      <div class="secao"><h3>Fatura</h3><div id="l-pgs"></div><button onclick="addPg()" class="btn-action" style="background:var(--blue)">+ PAGAR FATURA</button></div>
+    </main>
   </div>
 
   <script>
@@ -67,46 +116,143 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    let dados = {};
+    let pendente = { tipo: '', i: 0, v: 0, d: '' };
 
-    // AQUI ESTÁ O SEGREDO: SEM REDIRECIONAMENTO (window.location)
     auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('tela-login').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
-        carregarDados(user.uid);
-      } else {
-        document.getElementById('app-content').style.display = 'none';
-        document.getElementById('tela-login').style.display = 'flex';
-      }
+      document.getElementById('tela-login').style.display = user ? 'none' : 'flex';
+      document.getElementById('app-content').style.display = user ? 'block' : 'none';
+      if(user) load(user.uid);
     });
 
-    async function autenticar() {
-      const e = document.getElementById('login-email').value;
-      const s = document.getElementById('login-senha').value;
-      await auth.signInWithEmailAndPassword(e, s).catch(err => alert("Erro"));
+    async function logar() {
+      const e = document.getElementById('l-email').value;
+      const p = document.getElementById('l-pass').value;
+      await auth.signInWithEmailAndPassword(e, p).catch(a => alert("Erro"));
     }
 
-    async function deslogar() {
-      await auth.signOut();
-    }
+    function sair() { if(confirm("Sair?")) auth.signOut(); }
 
-    async function carregarDados(uid) {
+    async function load(uid) {
       const doc = await db.collection("usuarios").doc(uid).get();
-      const dados = doc.exists ? doc.data() : { config: { limite: 2000 } };
-      popularMeses();
-      // Renderização simplificada para teste de loop
-      document.getElementById('res-extra').innerText = "Conectado!";
+      dados = doc.exists ? doc.data() : init();
+      if(!dados.config) dados.config = { limite: 2000 };
+      document.getElementById('c-limite').value = dados.config.limite;
+      popMeses(); renderizar();
     }
 
-    function popularMeses() {
+    async function save() { await db.collection("usuarios").doc(auth.currentUser.uid).set(dados); renderizar(); }
+
+    function init() {
+      const b = { config: { limite: 2000 } };
+      for(let m=1; m<=12; m++) b[`2026-${String(m).padStart(2,'0')}`] = { receitas: [{desc:'Adiantamento', valor:0},{desc:'Salário', valor:0}], fixas: [], variaveis: [], pgs: [] };
+      return b;
+    }
+
+    function renderizar() {
+      const mes = document.getElementById("mes_select").value || "2026-03";
+      const info = dados[mes];
+      const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      document.getElementById("l-receitas").innerHTML = info.receitas.map((r, i) => `
+        <div class="linha-item"><b>${r.desc}</b> 
+        <input type="number" step="0.01" style="width:80px" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);save()"></div>`).join('');
+
+      document.getElementById("l-fixas").innerHTML = info.fixas.map((f, i) => `
+        <div class="linha-item">
+          <input type="checkbox" style="width:20px;height:20px" ${f.pago?'checked':''} onchange="checkFixa(${i}, this.checked)">
+          <span style="flex:1" class="${f.pago?'pago-texto':''}">${f.desc} - ${fmt(f.valor)}</span>
+          <button onclick="del('fixas',${i})" style="background:var(--red); border:none; color:#fff; border-radius:4px">×</button>
+        </div>`).join('');
+
+      document.getElementById("l-vars").innerHTML = info.variaveis.map((v, i) => `
+        <div class="linha-item"><span style="flex:1">${v.desc} - ${fmt(v.valor)}</span><button onclick="del('variaveis',${i})" style="background:var(--red); border:none; color:#fff; border-radius:4px">×</button></div>`).join('');
+
+      document.getElementById("l-pgs").innerHTML = info.pgs.map((p, i) => `
+        <div class="linha-item"><span style="flex:1">Pgto Fatura - ${fmt(p.valor)}</span><button onclick="del('pgs',${i})" style="background:var(--red); border:none; color:#fff; border-radius:4px">×</button></div>`).join('');
+
+      resumo(mes);
+    }
+
+    function checkFixa(i, c) {
+      if(c) { pendente = { tipo: 'fixas', i: i }; document.getElementById('modal-fonte').style.display = 'flex'; }
+      else { dados[document.getElementById("mes_select").value].fixas[i].pago = false; save(); }
+    }
+
+    function setFonte(f) {
+      const mes = document.getElementById("mes_select").value;
+      let mReal = f === 'auto' ? (new Date().getDate() <= 15 ? 'adiantamento' : 'salario') : f;
+      if(pendente.tipo === 'pgs') dados[mes].pgs.push({valor: pendente.v, fonte: mReal});
+      else if(pendente.tipo === 'vars') dados[mes].variaveis.push({desc: pendente.d, valor: pendente.v, meio: mReal});
+      else { dados[mes].fixas[pendente.i].pago = true; dados[mes].fixas[pendente.i].meio = mReal; }
+      closeModal(); save();
+    }
+
+    function closeModal() { document.getElementById('modal-fonte').style.display = 'none'; renderizar(); }
+
+    function resumo(mes) {
+      const info = dados[mes];
+      let vEx=0, vAd=0, vSa=0, pEx=0, pAd=0, pSa=0, gCa=0, pgF=0;
+      const fmt = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      info.receitas.forEach(r => {
+        const n = r.desc.toLowerCase();
+        if(n.includes("adiant")) vAd += r.valor; else if(n.includes("salario")) vSa += r.valor; else vEx += r.valor;
+      });
+
+      info.fixas.forEach(f => {
+        if(f.pago) {
+          if(f.meio === 'extra') pEx += f.valor; else if(f.meio === 'adiantamento') pAd += f.valor;
+          else if(f.meio === 'salario') pSa += f.valor; else if(f.meio === 'cartao') gCa += f.valor;
+        }
+      });
+
+      info.variaveis.forEach(v => {
+        if(v.meio === 'cartao') gCa += v.valor; else if(v.meio === 'extra') pEx += v.valor;
+        else if(v.meio === 'adiantamento') pAd += v.valor; else pSa += v.valor;
+      });
+
+      info.pgs.forEach(p => {
+        pgF += p.valor;
+        if(p.fonte === 'extra') pEx += p.valor; else if(p.fonte === 'adiantamento') pAd += p.valor; else pSa += p.valor;
+      });
+
+      const usado = gCa - pgF;
+      document.getElementById("r-extra").innerText = fmt(vEx - pEx);
+      document.getElementById("r-adiant").innerText = fmt(vAd - pAd);
+      document.getElementById("r-salario").innerText = fmt(vSa - pSa);
+      document.getElementById("r-cartao").innerText = fmt(usado);
+
+      const pb = (id, g, t) => {
+        const el = document.getElementById(id);
+        const p = t > 0 ? Math.min((g/t)*100, 100) : 0;
+        el.style.width = p + "%";
+        el.style.backgroundColor = p <= 50 ? "var(--green)" : p <= 80 ? "var(--orange)" : "var(--red)";
+      };
+      pb("b-extra", pEx, vEx); pb("b-adiant", pAd, vAd); pb("b-salario", pSa, vSa); pb("b-cartao", usado, dados.config.limite);
+    }
+
+    function addFixa() { let d = prompt("Desc:"); let v = parseFloat(prompt("Valor:")); if(d && v) { dados[document.getElementById("mes_select").value].fixas.push({desc:d, valor:v, pago:false}); save(); } }
+    function addVar() { let d = prompt("Desc:"); let v = parseFloat(prompt("Valor:")); if(d && v) { pendente = { tipo: 'vars', d: d, v: v }; document.getElementById('modal-fonte').style.display = 'flex'; } }
+    function addPg() { let v = parseFloat(prompt("Valor:")); if(v) { pendente = { tipo: 'pgs', v: v }; document.getElementById('modal-fonte').style.display = 'flex'; } }
+    function addRec() { let d = prompt("Nome:"); let v = parseFloat(prompt("Valor:")); if(d && v) { dados[document.getElementById("mes_select").value].receitas.push({desc:d, valor:v}); save(); } }
+
+    function popMeses() {
       const s = document.getElementById("mes_select");
       if(s.options.length > 0) return;
-      const ms = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-      ms.forEach((m, i) => {
+      ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m, i) => {
         let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
         if(i+1 === new Date().getMonth()+1) o.selected = true; s.appendChild(o);
       });
     }
+
+    function tab(e, n) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(`aba-${n}`).classList.add('active'); e.currentTarget.classList.add('active');
+    }
+
+    function del(t, i) { if(confirm("Apagar?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
   </script>
 </body>
 </html>
