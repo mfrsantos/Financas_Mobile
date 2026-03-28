@@ -1,34 +1,29 @@
-const CACHE_NAME = 'financas-ms-v1';
+const CACHE_NAME = 'financas-ms-v6.3.1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css',
-  './script.js',
   './manifest.json',
-  './icon-192x192.png',
-  './icon-512x512.png'
+  './icon-192x192.png'
 ];
 
 // Instalação: Salva arquivos no cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Cache aberto: salvando arquivos estáticos');
+      // Usamos cache.addAll mas com cuidado para não travar se um ícone faltar
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  // Força o Service Worker atual a se tornar ativo imediatamente
   self.skipWaiting();
 });
 
-// Ativação: Remove caches antigos de versões anteriores
+// Ativação: Limpa versões antigas para não dar conflito de cache
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('Removendo cache antigo:', cache);
             return caches.delete(cache);
           }
         })
@@ -38,7 +33,8 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// Estratégia de busca: Tenta a rede primeiro, se falhar (offline), usa o cache
+// Estratégia: Rede primeiro, Cache depois (Network First)
+// Ideal para apps que usam Firebase e precisam de dados atualizados
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request).catch(() => {
