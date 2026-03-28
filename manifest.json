@@ -1,36 +1,24 @@
 {
-  "name": "MS Finanças",
-  "short_name": "MS Finanças",
-  "description": "Sistema de gestão financeira MS Finanças.",
+  "name": "ERP Finanças MS Informatica",
+  "short_name": "Finanças MS",
+  "description": "Sistema de gestão financeira pessoal e empresarial",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1c1c1c",
-  "theme_color": "#0078d4",
-  "id": "com.msfinancas.app",
-  "dir": "ltr",
-  "lang": "pt-BR",
+  "background_color": "#ffffff",
+  "theme_color": "#2c3e50",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Tela Principal MS Finanças"
     }
   ]
 }
