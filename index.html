@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças Cloud v3.3</title>
+  <title>MS Finanças Cloud v3.4</title>
   <link rel="manifest" href="/Financas_Mobile/manifest.json">
   <meta name="theme-color" content="#0078d4">
   
@@ -111,7 +111,7 @@
 
     <main id="aba-despesas" class="tab-content">
       <div class="secao">
-        <h3>Contas Fixas (Débito)</h3>
+        <h3>Contas Fixas</h3>
         <div id="lista-fixas"></div>
         <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ Nova Conta Fixa</button>
       </div>
@@ -125,7 +125,6 @@
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
         <h3>Pagamentos da Fatura</h3>
-        <p style="font-size:0.7rem; color:#aaa">Registre aqui quanto você pagou da fatura neste mês.</p>
         <div id="lista-pagamentos"></div>
         <button onclick="addItem('pagamentosFatura')" class="btn-action" style="background:var(--blue)">+ Registrar Pagamento</button>
       </div>
@@ -133,7 +132,7 @@
 
     <main id="aba-config" class="tab-content">
       <div class="secao">
-        <h3>Configurações Gerais</h3>
+        <h3>Configurações</h3>
         <div class="linha-item">
           <span>Limite do Cartão:</span>
           <input type="number" id="cfg-limite" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()">
@@ -162,7 +161,7 @@
       const email = document.getElementById('login-email').value;
       const senha = document.getElementById('login-senha').value;
       try { await auth.signInWithEmailAndPassword(email, senha); } 
-      catch (e) { try { await auth.createUserWithEmailAndPassword(email, senha); } catch (err) { alert("Erro na autenticação."); } }
+      catch (e) { try { await auth.createUserWithEmailAndPassword(email, senha); } catch (err) { alert("Erro de login."); } }
     }
 
     auth.onAuthStateChanged(user => {
@@ -187,9 +186,9 @@
     async function salvar() {
       const user = auth.currentUser;
       if (user) {
-        document.getElementById('status-cloud').innerText = "Nuvem: Salvando...";
+        document.getElementById('status-cloud').innerText = "Salvando...";
         await db.collection("usuarios").doc(user.uid).set(dados);
-        document.getElementById('status-cloud').innerText = "Nuvem: Sincronizado";
+        document.getElementById('status-cloud').innerText = "Sincronizado";
         renderizar();
       }
     }
@@ -211,13 +210,11 @@
 
       document.getElementById("cfg-limite").value = dados.config.limiteCartao;
 
-      // Render Receitas
       document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `
         <div class="linha-item"><span class="info-area"><b>${r.desc}</b></span>
         <input type="number" step="0.01" style="width:90px" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
         </div>`).join('');
 
-      // Render Fixas e Variáveis
       const renderLinha = (item, lista, tipo) => `
         <div class="linha-item"><div class="info-area"><span>${item.categoria}</span><b>${formatar(item.valor)}</b></div>
         <button onclick="remover('${tipo}', ${lista})" class="btn-del">×</button></div>`;
@@ -235,11 +232,24 @@
 
       info.receitas.forEach(r => {
         const n = r.desc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if(n.includes("adiant")) vAdiant += r.valor; else if(n.includes("salario")) vSal += r.valor; else vExtra += r.valor;
+        if(n.includes("adiant")) vAdiant += r.valor; 
+        else if(n.includes("salario")) vSal += r.valor; 
+        else vExtra += r.valor;
       });
 
-      info.fixas.forEach(f => { if(f.meio === 'extra') pExtra += f.valor; else pSal += f.valor; });
-      info.variaveis.forEach(v => { if(v.meio === 'cartao') gCartao += v.valor; else pExtra += v.valor; });
+      info.fixas.forEach(f => {
+        if(f.meio === 'extra') pExtra += f.valor;
+        else if(f.meio === 'adiantamento') pAdiant += f.valor;
+        else if(f.meio === 'salario') pSal += f.valor;
+        else pSal += f.valor; // Default
+      });
+
+      info.variaveis.forEach(v => {
+        if(v.meio === 'cartao') gCartao += v.valor;
+        else if(v.meio === 'extra') pExtra += v.valor;
+        else if(v.meio === 'adiantamento') pAdiant += v.valor;
+        else if(v.meio === 'salario') pSal += v.valor;
+      });
 
       document.getElementById("res-extra").innerText = formatar(vExtra - pExtra);
       document.getElementById("res-adiant").innerText = formatar(vAdiant - pAdiant);
@@ -272,25 +282,41 @@
     function mudarAba(aba) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.toLowerCase().includes(aba.substring(0,3)));
-      if(btn) btn.classList.add('active');
       document.getElementById(`aba-${aba}`).classList.add('active');
     }
 
-    function addReceita() { const n = prompt("Nome:"); if(n){ const v = parseFloat(prompt("Valor:"))||0; dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:v}); salvar(); } }
+    function addReceita() { 
+      const n = prompt("Nome da Receita:"); 
+      if(n){ 
+        const v = parseFloat(prompt("Valor:"))||0; 
+        dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:v}); 
+        salvar(); 
+      } 
+    }
     
     function addItem(tipo) {
       const n = prompt("Descrição:");
-      if(n){
-        const v = parseFloat(prompt("Valor:"))||0;
-        let meio = 'debito';
-        if(tipo === 'variaveis') meio = confirm("É no CARTÃO? (Cancel para Extra/Dinheiro)") ? 'cartao' : 'extra';
-        dados[document.getElementById("mes_select").value][tipo].push({categoria:n, valor:v, meio:meio});
-        salvar();
+      if(!n) return;
+      const v = parseFloat(prompt("Valor:"))||0;
+      
+      let meio = 'debito';
+      if(tipo === 'variaveis' || tipo === 'fixas') {
+        const opcao = prompt("Qual o meio de pagamento?\n1 - Crédito (Cartão)\n2 - Débito (Data Automática)\n3 - Extra (Livre/Dinheiro)");
+        
+        if(opcao === "1") meio = 'cartao';
+        else if(opcao === "2") {
+          const dia = new Date().getDate();
+          meio = (dia <= 15) ? 'adiantamento' : 'salario';
+        } else {
+          meio = 'extra';
+        }
       }
+
+      dados[document.getElementById("mes_select").value][tipo].push({categoria:n, valor:v, meio:meio});
+      salvar();
     }
 
-    function remover(t, i) { if(confirm("Remover item?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
+    function remover(t, i) { if(confirm("Deseja remover este item?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
 
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/Financas_Mobile/sw.js'); }
   </script>
