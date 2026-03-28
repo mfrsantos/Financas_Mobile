@@ -1,25 +1,43 @@
 {
+  "id": "com.msinformatica.financascloud",
   "name": "ERP Finanças MS Cloud",
   "short_name": "MS Finanças",
   "description": "Controle Financeiro MS Informática Bom Despacho",
-  "start_url": "./index.html",
+  "start_url": "/Financas_Mobile/index.html",
   "display": "standalone",
   "background_color": "#1c1c1c",
   "theme_color": "#0078d4",
   "orientation": "portrait",
-  "scope": "./",
-  "id": "com.msinformatica.financascloud",
+  "scope": "/Financas_Mobile/",
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tela Inicial MS Finanças"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tela Inicial MS Finanças"
     }
   ]
 }
