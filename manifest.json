@@ -5,11 +5,15 @@
   "description": "Controle Financeiro MS Informática Bom Despacho",
   "start_url": "/Financas_Mobile/index.html",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#1c1c1c",
   "theme_color": "#0078d4",
   "orientation": "portrait",
   "scope": "/Financas_Mobile/",
   "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["finance", "productivity"],
+  "iarc_rating_id": "e",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
