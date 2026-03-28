@@ -13,62 +13,49 @@
 
   <style>
     :root { --blue: #0078d4; --green: #107c10; --yellow: #ffb900; --purple: #8764b8; --red: #d13438; --bg: #1c1c1c; --card-bg: #2b2b2b; --border: #3c3c3c; }
-    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; touch-action: manipulation; }
-    body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; }
-    
-    #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .login-box { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center; }
-    .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; }
+    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+    body { margin: 0; background: var(--bg); color: #fff; }
     
     #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    
-    .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); overflow-x: auto; }
-    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.7rem; white-space: nowrap; }
+    .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.7rem; }
     .tab-btn.active { background: #323232; color: var(--blue); }
 
     .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); border-bottom: 3px solid var(--blue); }
     .card h2 { margin: 0; font-size: 0.6rem; color: #b0b0b0; text-transform: uppercase; }
-    .card p { margin: 5px 0; font-size: 0.95rem; font-weight: 800; }
+    .card p { margin: 5px 0; font-size: 0.9rem; font-weight: 800; }
     
-    .barra-box { width: 100%; height: 6px; background: #444; border-radius: 3px; margin-top: 8px; overflow: hidden; }
-    .progresso { height: 100%; width: 0%; transition: width 0.6s ease; }
-
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .linha-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #383838; gap: 10px; }
-    .info-area { display: flex; flex: 1; justify-content: space-between; font-size: 0.85rem; }
+    .linha-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #383838; gap: 10px; }
+    .info-area { display: flex; flex: 1; justify-content: space-between; font-size: 0.85rem; align-items: center; }
     
-    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; color: white; margin-top: 10px; cursor: pointer; }
-    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 28px; height: 28px; }
+    .check-pago { width: 22px; height: 22px; accent-color: var(--green); }
+    .pago-texto { text-decoration: line-through; color: #888; }
     
-    select, input[type="number"] { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 8px; border-radius: 6px; }
+    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; color: white; margin-top: 10px; }
+    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 28px; height: 28px; font-weight: bold; }
+    
+    input[type="number"], select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 8px; border-radius: 6px; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
   </style>
 </head>
 <body>
 
-  <div id="tela-login">
-    <div class="login-box">
+  <div id="tela-login" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+    <div style="background: var(--card-bg); padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; border: 1px solid var(--blue); text-align: center;">
       <h2 style="color:var(--blue)">MS FINANÇAS</h2>
-      <input type="email" id="login-email" placeholder="E-mail">
-      <input type="password" id="login-senha" placeholder="Senha">
+      <input type="email" id="login-email" placeholder="E-mail" style="width:100%; padding:12px; margin:10px 0;">
+      <input type="password" id="login-senha" placeholder="Senha" style="width:100%; padding:12px; margin:10px 0;">
       <button class="btn-action" style="background:var(--blue)" onclick="autenticar()">ENTRAR</button>
-      <p id="login-msg" style="font-size: 0.7rem; color: var(--red); margin-top: 10px;"></p>
     </div>
   </div>
 
   <div id="app-content">
-    <header>
-      <div>
-        <span style="color:var(--blue); font-weight:800;">MS FINANÇAS</span>
-        <div id="status-cloud" style="font-size:0.6rem; color:#888">Sincronizado</div>
-      </div>
-      <div style="display:flex; gap:10px">
-        <button onclick="mudarAba('config')" style="background:none; border:none; font-size:1.2rem">⚙️</button>
-        <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-size:0.7rem; font-weight:bold">Sair</button>
-      </div>
+    <header style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <span style="color:var(--blue); font-weight:800;">MS FINANÇAS</span>
+      <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-weight:bold;">Sair</button>
     </header>
 
     <select id="mes_select" onchange="renderizar();" style="width:100%; margin-bottom:15px;"></select>
@@ -84,26 +71,21 @@
       <div class="cards-grid">
         <div class="card" style="border-bottom-color: var(--purple);">
           <h2>Extra Livre</h2><p id="res-extra">R$ 0,00</p>
-          <div class="barra-box"><div id="bar-extra" class="progresso"></div></div>
         </div>
         <div class="card" style="border-bottom-color: var(--blue);">
           <h2>Adiantamento</h2><p id="res-adiant">R$ 0,00</p>
-          <div class="barra-box"><div id="bar-adiant" class="progresso"></div></div>
         </div>
         <div class="card" style="border-bottom-color: var(--green);">
           <h2>Salário</h2><p id="res-salario">R$ 0,00</p>
-          <div class="barra-box"><div id="bar-salario" class="progresso"></div></div>
         </div>
         <div class="card" style="border-bottom-color: var(--red);">
-          <h2>Fatura Cartão</h2><p id="res-fatura">R$ 0,00</p>
-          <div class="barra-box"><div id="bar-cartao" class="progresso"></div></div>
+          <h2>Cartão (Uso/Disp)</h2><p id="res-cartao-info">R$ 0,00 / R$ 0,00</p>
         </div>
       </div>
     </main>
 
     <main id="aba-receitas" class="tab-content">
       <div class="secao">
-        <h3>Receitas</h3>
         <div id="lista-receitas"></div>
         <button onclick="addReceita()" class="btn-action" style="background:var(--green)">+ Nova Receita</button>
       </div>
@@ -124,20 +106,16 @@
 
     <main id="aba-cartao" class="tab-content">
       <div class="secao">
-        <h3>Movimentações do Cartão</h3>
+        <h3>Pagamento de Fatura</h3>
         <div id="lista-pagamentos"></div>
-        <button onclick="addItem('pagamentosFatura')" class="btn-action" style="background:var(--blue)">+ Novo Registro</button>
+        <button onclick="pagarFatura()" class="btn-action" style="background:var(--blue)">+ Registrar Pagamento</button>
       </div>
     </main>
 
     <main id="aba-config" class="tab-content">
       <div class="secao">
-        <h3>Configurações Gerais</h3>
-        <div class="linha-item">
-          <span>Limite de Crédito:</span>
-          <input type="number" id="cfg-limite" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()">
-        </div>
-        <button class="btn-action" style="background:#444" onclick="mudarAba('resumo')">Voltar</button>
+        <h3>Limite do Cartão</h3>
+        <input type="number" step="0.01" id="cfg-limite" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()">
       </div>
     </main>
   </div>
@@ -160,8 +138,7 @@
     async function autenticar() {
       const email = document.getElementById('login-email').value;
       const senha = document.getElementById('login-senha').value;
-      try { await auth.signInWithEmailAndPassword(email, senha); } 
-      catch (e) { try { await auth.createUserWithEmailAndPassword(email, senha); } catch (err) { alert("Falha no acesso."); } }
+      try { await auth.signInWithEmailAndPassword(email, senha); } catch (e) { alert("Erro."); }
     }
 
     auth.onAuthStateChanged(user => {
@@ -178,7 +155,6 @@
     async function carregarDados(uid) {
       const doc = await db.collection("usuarios").doc(uid).get();
       dados = doc.exists ? doc.data() : inicializar();
-      if(!dados.config) dados.config = { limiteCartao: 2000 };
       popularMeses();
       renderizar();
     }
@@ -186,9 +162,7 @@
     async function salvar() {
       const user = auth.currentUser;
       if (user) {
-        document.getElementById('status-cloud').innerText = "Sincronizando...";
         await db.collection("usuarios").doc(user.uid).set(dados);
-        document.getElementById('status-cloud').innerText = "Sincronizado";
         renderizar();
       }
     }
@@ -201,46 +175,76 @@
       return base;
     }
 
-    function formatar(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    // CORREÇÃO DOS DECIMAIS: Formatador para moeda Brasileira
+    function formatar(v) { 
+      return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }); 
+    }
 
     function renderizar() {
       const mes = document.getElementById("mes_select").value || "2026-03";
       const info = dados[mes];
-      if(!info) return;
-
-      document.getElementById("cfg-limite").value = dados.config.limiteCartao;
 
       document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `
         <div class="linha-item"><span class="info-area"><b>${r.desc}</b></span>
-        <input type="number" step="0.01" style="width:90px" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
+        <input type="number" step="0.01" style="width:100px" value="${r.valor.toFixed(2)}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
         </div>`).join('');
 
-      const renderLinha = (item, lista, tipo) => `
-        <div class="linha-item"><div class="info-area"><span>${item.categoria}</span><b>${formatar(item.valor)}</b></div>
-        <button onclick="remover('${tipo}', ${lista})" class="btn-del">×</button></div>`;
+      // CORREÇÃO: Renderização das Fixas com Checkbox
+      document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => `
+        <div class="linha-item">
+          <input type="checkbox" class="check-pago" ${f.pago ? 'checked' : ''} onchange="confirmarPagamentoFixa(${i}, this.checked)">
+          <div class="info-area ${f.pago ? 'pago-texto' : ''}">
+            <span>${f.categoria}</span>
+            <b>${formatar(f.valor)}</b>
+          </div>
+          <button onclick="remover('fixas', ${i})" class="btn-del">×</button>
+        </div>`).join('');
 
-      document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => renderLinha(f, i, 'fixas')).join('');
-      document.getElementById("lista-variaveis").innerHTML = info.variaveis.map((v, i) => renderLinha(v, i, 'variaveis')).join('');
-      document.getElementById("lista-pagamentos").innerHTML = info.pagamentosFatura.map((p, i) => renderLinha(p, i, 'pagamentosFatura')).join('');
+      document.getElementById("lista-variaveis").innerHTML = info.variaveis.map((v, i) => `
+        <div class="linha-item"><div class="info-area"><span>${v.categoria}</span><b>${formatar(v.valor)}</b></div>
+        <button onclick="remover('variaveis', ${i})" class="btn-del">×</button></div>`).join('');
+
+      document.getElementById("lista-pagamentos").innerHTML = info.pagamentosFatura.map((p, i) => `
+        <div class="linha-item"><div class="info-area"><span>Pagamento Fatura</span><b>${formatar(p.valor)}</b></div>
+        <button onclick="remover('pagamentosFatura', ${i})" class="btn-del">×</button></div>`).join('');
 
       atualizarResumo(mes);
     }
 
+    function confirmarPagamentoFixa(index, isChecked) {
+      const mes = document.getElementById("mes_select").value;
+      if(isChecked) {
+        const opcao = prompt("Fonte de pagamento?\n1 - Crédito (Cartão)\n2 - Débito (Automático)\n3 - Extra");
+        let meio = 'extra';
+        if(opcao === "1") meio = 'cartao';
+        else if(opcao === "2") meio = (new Date().getDate() <= 15) ? 'adiantamento' : 'salario';
+        
+        dados[mes].fixas[index].pago = true;
+        dados[mes].fixas[index].meio = meio;
+      } else {
+        dados[mes].fixas[index].pago = false;
+        dados[mes].fixas[index].meio = '';
+      }
+      salvar();
+    }
+
     function atualizarResumo(mes) {
       const info = dados[mes];
-      let vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0;
+      let vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0, pgFatura=0;
 
       info.receitas.forEach(r => {
-        const n = r.desc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if(n.includes("adiant")) vAdiant += r.valor; 
-        else if(n.includes("salario")) vSal += r.valor; 
-        else vExtra += r.valor;
+        const n = r.desc.toLowerCase();
+        if(n.includes("adiant")) vAdiant += r.valor; else if(n.includes("salario")) vSal += r.valor; else vExtra += r.valor;
       });
 
+      // Soma apenas se estiver pago
       info.fixas.forEach(f => {
-        if(f.meio === 'extra') pExtra += f.valor;
-        else if(f.meio === 'adiantamento') pAdiant += f.valor;
-        else pSal += f.valor;
+        if(f.pago) {
+          if(f.meio === 'extra') pExtra += f.valor;
+          else if(f.meio === 'adiantamento') pAdiant += f.valor;
+          else if(f.meio === 'salario') pSal += f.valor;
+          else if(f.meio === 'cartao') gCartao += f.valor;
+        }
       });
 
       info.variaveis.forEach(v => {
@@ -250,27 +254,54 @@
         else if(v.meio === 'salario') pSal += v.valor;
       });
 
+      // Pagamentos de Fatura (Libera limite e debita do saldo)
+      info.pagamentosFatura.forEach(p => {
+        pgFatura += p.valor;
+        if(p.fonte === 'extra') pExtra += p.valor;
+        else if(p.fonte === 'adiantamento') pAdiant += p.valor;
+        else pSal += p.valor;
+      });
+
+      const usado = gCartao - pgFatura;
+      const disponivel = dados.config.limiteCartao - usado;
+
       document.getElementById("res-extra").innerText = formatar(vExtra - pExtra);
       document.getElementById("res-adiant").innerText = formatar(vAdiant - pAdiant);
       document.getElementById("res-salario").innerText = formatar(vSal - pSal);
-      document.getElementById("res-fatura").innerText = formatar(gCartao);
-
-      pintarBarra("bar-extra", pExtra, vExtra);
-      pintarBarra("bar-adiant", pAdiant, vAdiant);
-      pintarBarra("bar-salario", pSal, vSal);
-      pintarBarra("bar-cartao", gCartao, dados.config.limiteCartao);
+      document.getElementById("res-cartao-info").innerText = `${formatar(usado)} / ${formatar(disponivel)}`;
     }
 
-    function pintarBarra(id, gasto, total) {
-      const el = document.getElementById(id);
-      const pct = total > 0 ? Math.min((gasto/total)*100, 100) : 0;
-      el.style.width = pct + "%";
-      el.style.backgroundColor = pct > 85 ? "var(--red)" : pct > 60 ? "var(--yellow)" : "var(--green)";
+    // CORREÇÃO: Lógica de Pagamento de Fatura (Ajuste de Saldo e Limite)
+    function pagarFatura() {
+      const v = parseFloat(prompt("Valor do Pagamento:"))||0;
+      if(v <= 0) return;
+      
+      const opcao = prompt("Pagar usando?\n1 - Débito (Automático)\n2 - Extra");
+      let fonte = (opcao === "1") ? ((new Date().getDate() <= 15) ? 'adiantamento' : 'salario') : 'extra';
+      
+      dados[document.getElementById("mes_select").value].pagamentosFatura.push({valor: v, fonte: fonte});
+      salvar();
+    }
+
+    function addItem(tipo) {
+      const n = prompt("Descrição:"); if(!n) return;
+      const v = parseFloat(prompt("Valor:"))||0;
+      const opcao = prompt("1 - Crédito\n2 - Débito (Auto)\n3 - Extra");
+      let meio = (opcao==="1")?'cartao':(opcao==="2")?((new Date().getDate()<=15)?'adiantamento':'salario'):'extra';
+      
+      dados[document.getElementById("mes_select").value][tipo].push({categoria:n, valor:v, meio:meio, pago:(tipo==='variaveis')});
+      salvar();
+    }
+
+    function addReceita() {
+      const n = prompt("Nome:"); if(!n) return;
+      const v = parseFloat(prompt("Valor:"))||0;
+      dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:v});
+      salvar();
     }
 
     function popularMeses() {
       const s = document.getElementById("mes_select");
-      if(s.options.length > 0) return;
       const ms = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
       ms.forEach((m, i) => {
         let o = document.createElement("option"); o.value = `2026-${String(i+1).padStart(2,'0')}`; o.textContent = m;
@@ -282,39 +313,10 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.getElementById(`aba-${aba}`).classList.add('active');
+      event.currentTarget.classList.add('active');
     }
 
-    function addReceita() { 
-      const n = prompt("Descrição da Receita:"); 
-      if(n){ 
-        const v = parseFloat(prompt("Valor:"))||0; 
-        dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:v}); 
-        salvar(); 
-      } 
-    }
-    
-    function addItem(tipo) {
-      const n = prompt("Descrição:");
-      if(!n) return;
-      const v = parseFloat(prompt("Valor:"))||0;
-      
-      let meio = 'debito';
-      const opcao = prompt("Método de Pagamento:\n1 - Crédito (Fatura)\n2 - Débito (Automático por Data)\n3 - Extra (Saldo Livre)");
-      
-      if(opcao === "1") {
-        meio = 'cartao';
-      } else if(opcao === "2") {
-        const dia = new Date().getDate();
-        meio = (dia <= 15) ? 'adiantamento' : 'salario';
-      } else {
-        meio = 'extra';
-      }
-
-      dados[document.getElementById("mes_select").value][tipo].push({categoria:n, valor:v, meio:meio});
-      salvar();
-    }
-
-    function remover(t, i) { if(confirm("Excluir registro?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
+    function remover(t, i) { if(confirm("Remover?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
   </script>
 </body>
 </html>
