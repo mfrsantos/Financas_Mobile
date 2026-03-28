@@ -3,7 +3,7 @@
   "short_name": "Finanças MS",
   "description": "Sistema de gestão financeira pessoal e empresarial",
   "start_url": "./index.html",
-  "id": "/financas-ms-informatica",
+  "id": "com.msinformatica.financas",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2c3e50",
