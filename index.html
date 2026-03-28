@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças Cloud</title>
+  <title>MS Finanças Cloud v3.3</title>
   <link rel="manifest" href="/Financas_Mobile/manifest.json">
   <meta name="theme-color" content="#0078d4">
   
@@ -16,66 +16,68 @@
     * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; touch-action: manipulation; }
     body { margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; }
     
-    /* Login */
     #tela-login { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
     .login-box { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--blue); text-align: center; }
     .login-box input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid var(--border); color: white; border-radius: 8px; }
-    .btn-login { width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; margin-top: 10px; }
-
-    /* App */
-    #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .sync-status { font-size: 0.65rem; color: #aaa; background: #333; padding: 4px 8px; border-radius: 10px; }
     
-    .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.75rem; }
+    #app-content { display: none; padding: 10px; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    
+    .tab-bar { display: flex; background: #252525; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); overflow-x: auto; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #a1a1a1; font-weight: 700; border-radius: 8px; font-size: 0.7rem; white-space: nowrap; }
     .tab-btn.active { background: #323232; color: var(--blue); }
 
     .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .card { padding: 12px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--border); border-bottom: 3px solid var(--blue); }
     .card h2 { margin: 0; font-size: 0.6rem; color: #b0b0b0; text-transform: uppercase; }
-    .card p { margin: 5px 0; font-size: 1rem; font-weight: 800; }
+    .card p { margin: 5px 0; font-size: 0.95rem; font-weight: 800; }
+    
     .barra-box { width: 100%; height: 6px; background: #444; border-radius: 3px; margin-top: 8px; overflow: hidden; }
     .progresso { height: 100%; width: 0%; transition: width 0.6s ease; }
 
     .secao { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
     .linha-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #383838; gap: 10px; }
     .info-area { display: flex; flex: 1; justify-content: space-between; font-size: 0.85rem; }
-    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 30px; height: 30px; }
     
-    select { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 10px; border-radius: 8px; width: 100%; margin-bottom: 15px; }
-    #btn-instalar { display: none; width: 100%; padding: 12px; background: var(--blue); color: white; border: none; font-weight: 800; margin-bottom: 10px; border-radius: 8px; }
+    .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; color: white; margin-top: 10px; cursor: pointer; }
+    .btn-del { background: var(--red); color: white; border: none; border-radius: 6px; width: 28px; height: 28px; }
+    
+    select, input[type="number"] { background: #1a1a1a; color: white; border: 1px solid var(--border); padding: 8px; border-radius: 6px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
   </style>
 </head>
 <body>
 
   <div id="tela-login">
     <div class="login-box">
-      <h2 style="color:var(--blue)">MS FINANÇAS CLOUD</h2>
+      <h2 style="color:var(--blue)">MS FINANÇAS</h2>
       <input type="email" id="login-email" placeholder="E-mail">
       <input type="password" id="login-senha" placeholder="Senha">
-      <button class="btn-login" onclick="autenticar()">ENTRAR / CADASTRAR</button>
+      <button class="btn-action" style="background:var(--blue)" onclick="autenticar()">ENTRAR</button>
       <p id="login-msg" style="font-size: 0.7rem; color: var(--red); margin-top: 10px;"></p>
     </div>
   </div>
 
   <div id="app-content">
-    <button id="btn-instalar" onclick="dispararInstalacao()">📲 INSTALAR NO TABLET</button>
-    
     <header>
-      <div style="display:flex; flex-direction:column">
-        <span style="color:var(--blue); font-weight:800; font-size:0.9rem">MS INFORMÁTICA</span>
-        <span id="status-cloud" class="sync-status">Sincronizado</span>
+      <div>
+        <span style="color:var(--blue); font-weight:800;">MS INFORMÁTICA</span>
+        <div id="status-cloud" style="font-size:0.6rem; color:#888">Sincronizado</div>
       </div>
-      <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-weight:bold">Sair</button>
+      <div style="display:flex; gap:10px">
+        <button onclick="mudarAba('config')" style="background:none; border:none; font-size:1.2rem">⚙️</button>
+        <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-size:0.7rem; font-weight:bold">Sair</button>
+      </div>
     </header>
 
-    <select id="mes_select" onchange="renderizar();"></select>
+    <select id="mes_select" onchange="renderizar();" style="width:100%; margin-bottom:15px;"></select>
 
     <nav class="tab-bar">
       <button class="tab-btn active" onclick="mudarAba('resumo')">RESUMO</button>
       <button class="tab-btn" onclick="mudarAba('receitas')">RECEITAS</button>
       <button class="tab-btn" onclick="mudarAba('despesas')">DESPESAS</button>
+      <button class="tab-btn" onclick="mudarAba('cartao')">CARTÃO</button>
     </nav>
 
     <main id="aba-resumo" class="tab-content active">
@@ -93,26 +95,51 @@
           <div class="barra-box"><div id="bar-salario" class="progresso"></div></div>
         </div>
         <div class="card" style="border-bottom-color: var(--red);">
-          <h2>Cartão (Limite)</h2><p id="res-fatura">R$ 0,00</p>
+          <h2>Fatura Atual</h2><p id="res-fatura">R$ 0,00</p>
           <div class="barra-box"><div id="bar-cartao" class="progresso"></div></div>
         </div>
       </div>
     </main>
 
     <main id="aba-receitas" class="tab-content">
-        <div class="secao">
-            <h3>Minhas Receitas</h3>
-            <div id="lista-receitas"></div>
-            <button onclick="addReceita()" class="btn-login" style="background:var(--green)">+ Nova Receita</button>
-        </div>
+      <div class="secao">
+        <h3>Receitas do Mês</h3>
+        <div id="lista-receitas"></div>
+        <button onclick="addReceita()" class="btn-action" style="background:var(--green)">+ Nova Receita</button>
+      </div>
     </main>
 
     <main id="aba-despesas" class="tab-content">
-        <div class="secao">
-            <h3>Contas Fixas</h3>
-            <div id="lista-fixas"></div>
-            <button onclick="addDespesaFixa()" class="btn-login" style="background:var(--purple)">+ Nova Conta</button>
+      <div class="secao">
+        <h3>Contas Fixas (Débito)</h3>
+        <div id="lista-fixas"></div>
+        <button onclick="addItem('fixas')" class="btn-action" style="background:var(--purple)">+ Nova Conta Fixa</button>
+      </div>
+      <div class="secao">
+        <h3>Despesas Variáveis</h3>
+        <div id="lista-variaveis"></div>
+        <button onclick="addItem('variaveis')" class="btn-action" style="background:var(--yellow); color:#000">+ Nova Variável</button>
+      </div>
+    </main>
+
+    <main id="aba-cartao" class="tab-content">
+      <div class="secao">
+        <h3>Pagamentos da Fatura</h3>
+        <p style="font-size:0.7rem; color:#aaa">Registre aqui quanto você pagou da fatura neste mês.</p>
+        <div id="lista-pagamentos"></div>
+        <button onclick="addItem('pagamentosFatura')" class="btn-action" style="background:var(--blue)">+ Registrar Pagamento</button>
+      </div>
+    </main>
+
+    <main id="aba-config" class="tab-content">
+      <div class="secao">
+        <h3>Configurações Gerais</h3>
+        <div class="linha-item">
+          <span>Limite do Cartão:</span>
+          <input type="number" id="cfg-limite" onchange="dados.config.limiteCartao=parseFloat(this.value);salvar()">
         </div>
+        <button class="btn-action" style="background:#444" onclick="mudarAba('resumo')">Voltar</button>
+      </div>
     </main>
   </div>
 
@@ -134,13 +161,8 @@
     async function autenticar() {
       const email = document.getElementById('login-email').value;
       const senha = document.getElementById('login-senha').value;
-      const msg = document.getElementById('login-msg');
-      try {
-        await auth.signInWithEmailAndPassword(email, senha);
-      } catch (e) {
-        try { await auth.createUserWithEmailAndPassword(email, senha); } 
-        catch (err) { msg.innerText = "Falha no Login/Cadastro"; }
-      }
+      try { await auth.signInWithEmailAndPassword(email, senha); } 
+      catch (e) { try { await auth.createUserWithEmailAndPassword(email, senha); } catch (err) { alert("Erro na autenticação."); } }
     }
 
     auth.onAuthStateChanged(user => {
@@ -157,6 +179,7 @@
     async function carregarDados(uid) {
       const doc = await db.collection("usuarios").doc(uid).get();
       dados = doc.exists ? doc.data() : inicializar();
+      if(!dados.config) dados.config = { limiteCartao: 2000 };
       popularMeses();
       renderizar();
     }
@@ -164,9 +187,9 @@
     async function salvar() {
       const user = auth.currentUser;
       if (user) {
-        document.getElementById('status-cloud').innerText = "Salvando...";
+        document.getElementById('status-cloud').innerText = "Nuvem: Salvando...";
         await db.collection("usuarios").doc(user.uid).set(dados);
-        document.getElementById('status-cloud').innerText = "Sincronizado";
+        document.getElementById('status-cloud').innerText = "Nuvem: Sincronizado";
         renderizar();
       }
     }
@@ -186,22 +209,29 @@
       const info = dados[mes];
       if(!info) return;
 
+      document.getElementById("cfg-limite").value = dados.config.limiteCartao;
+
+      // Render Receitas
       document.getElementById("lista-receitas").innerHTML = info.receitas.map((r, i) => `
         <div class="linha-item"><span class="info-area"><b>${r.desc}</b></span>
-        <input type="number" step="0.01" style="width:85px; text-align:right" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
+        <input type="number" step="0.01" style="width:90px" value="${r.valor}" onchange="dados['${mes}'].receitas[${i}].valor=parseFloat(this.value);salvar()">
         </div>`).join('');
 
-      document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => `
-        <div class="linha-item">
-          <div class="info-area"><span>${f.categoria}</span><b>${formatar(f.valor)}</b></div>
-          <button onclick="removerItem('fixas', ${i})" class="btn-del">×</button></div>`).join('');
+      // Render Fixas e Variáveis
+      const renderLinha = (item, lista, tipo) => `
+        <div class="linha-item"><div class="info-area"><span>${item.categoria}</span><b>${formatar(item.valor)}</b></div>
+        <button onclick="remover('${tipo}', ${lista})" class="btn-del">×</button></div>`;
+
+      document.getElementById("lista-fixas").innerHTML = info.fixas.map((f, i) => renderLinha(f, i, 'fixas')).join('');
+      document.getElementById("lista-variaveis").innerHTML = info.variaveis.map((v, i) => renderLinha(v, i, 'variaveis')).join('');
+      document.getElementById("lista-pagamentos").innerHTML = info.pagamentosFatura.map((p, i) => renderLinha(p, i, 'pagamentosFatura')).join('');
 
       atualizarResumo(mes);
     }
 
     function atualizarResumo(mes) {
       const info = dados[mes];
-      let vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0;
+      let vExtra=0, vAdiant=0, vSal=0, pExtra=0, pAdiant=0, pSal=0, gCartao=0;
 
       info.receitas.forEach(r => {
         const n = r.desc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -209,15 +239,17 @@
       });
 
       info.fixas.forEach(f => { if(f.meio === 'extra') pExtra += f.valor; else pSal += f.valor; });
+      info.variaveis.forEach(v => { if(v.meio === 'cartao') gCartao += v.valor; else pExtra += v.valor; });
 
       document.getElementById("res-extra").innerText = formatar(vExtra - pExtra);
       document.getElementById("res-adiant").innerText = formatar(vAdiant - pAdiant);
       document.getElementById("res-salario").innerText = formatar(vSal - pSal);
-      document.getElementById("res-fatura").innerText = formatar(dados.config.limiteCartao);
+      document.getElementById("res-fatura").innerText = formatar(gCartao);
 
       pintarBarra("bar-extra", pExtra, vExtra);
       pintarBarra("bar-adiant", pAdiant, vAdiant);
       pintarBarra("bar-salario", pSal, vSal);
+      pintarBarra("bar-cartao", gCartao, dados.config.limiteCartao);
     }
 
     function pintarBarra(id, gasto, total) {
@@ -240,36 +272,27 @@
     function mudarAba(aba) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.toLowerCase().includes(aba.substring(0,3)));
+      if(btn) btn.classList.add('active');
       document.getElementById(`aba-${aba}`).classList.add('active');
     }
 
     function addReceita() { const n = prompt("Nome:"); if(n){ const v = parseFloat(prompt("Valor:"))||0; dados[document.getElementById("mes_select").value].receitas.push({desc:n, valor:v}); salvar(); } }
-    function addDespesaFixa() { const n = prompt("Conta:"); if(n){ const v = parseFloat(prompt("Valor:"))||0; dados[document.getElementById("mes_select").value].fixas.push({categoria:n, valor:v, meio:'debito'}); salvar(); } }
-    function removerItem(t, i) { if(confirm("Remover?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
-
-    // --- REGISTRO DO SERVICE WORKER CORRIGIDO PARA GITHUB ---
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/Financas_Mobile/sw.js')
-        .then(reg => console.log("SW OK:", reg.scope))
-        .catch(err => console.log("SW ERRO:", err));
+    
+    function addItem(tipo) {
+      const n = prompt("Descrição:");
+      if(n){
+        const v = parseFloat(prompt("Valor:"))||0;
+        let meio = 'debito';
+        if(tipo === 'variaveis') meio = confirm("É no CARTÃO? (Cancel para Extra/Dinheiro)") ? 'cartao' : 'extra';
+        dados[document.getElementById("mes_select").value][tipo].push({categoria:n, valor:v, meio:meio});
+        salvar();
+      }
     }
 
-    // --- LÓGICA DE INSTALAÇÃO PWA ---
-    let promptInstalacao;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      promptInstalacao = e;
-      document.getElementById('btn-instalar').style.display = 'block';
-    });
+    function remover(t, i) { if(confirm("Remover item?")){ dados[document.getElementById("mes_select").value][t].splice(i,1); salvar(); } }
 
-    async function dispararInstalacao() {
-      if (!promptInstalacao) return;
-      promptInstalacao.prompt();
-      const { outcome } = await promptInstalacao.userChoice;
-      if (outcome === 'accepted') document.getElementById('btn-instalar').style.display = 'none';
-      promptInstalacao = null;
-    }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/Financas_Mobile/sw.js'); }
   </script>
 </body>
 </html>
