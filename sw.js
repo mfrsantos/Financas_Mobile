@@ -1,4 +1,4 @@
-const CACHE_NAME = 'financas-ms-v6.5';
+const CACHE_NAME = 'financas-ms-v6.6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
