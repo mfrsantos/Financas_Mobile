@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.4.3</title>
+  <title>MS Finanças v6.4.4</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -37,8 +37,18 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.1s;
     }
     .btn-action:active { transform: scale(0.98); }
+
+    /* Botão Sair */
+    .btn-sair {
+      background: rgba(231, 76, 60, 0.2); color: var(--red); border: 1px solid var(--red);
+      padding: 8px 15px; border-radius: 12px; font-weight: 700; cursor: pointer;
+      font-size: 0.8rem; transition: 0.3s;
+    }
+    .btn-sair:hover { background: var(--red); color: white; }
     
     #app-content { display: none; padding: 15px; max-width: 900px; margin: 0 auto; }
+
+    .header-app { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
 
     .tab-bar { 
       display: flex; background: var(--card-bg); backdrop-filter: blur(10px);
@@ -110,7 +120,10 @@
   </div>
 
   <div id="app-content">
-    <select id="mes_select" onchange="renderizar();"></select>
+    <header class="header-app">
+      <select id="mes_select" onchange="renderizar();" style="margin-bottom: 0; flex: 1;"></select>
+      <button class="btn-sair" onclick="auth.signOut()">Sair</button>
+    </header>
 
     <nav class="tab-bar">
       <button class="tab-btn active" onclick="mudarTab(event, 'resumo')">RESUMO</button>
