@@ -1,10 +1,10 @@
-const CACHE_NAME = 'financas-ms-v6.8';
+const CACHE_NAME = 'financas-ms-v6.9';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192x192.png',
-  './icon-512x512.png'
+  './icon-192x192.jpg',
+  './icon-512x512.jpg'
 ];
 
 self.addEventListener('install', (event) => {
