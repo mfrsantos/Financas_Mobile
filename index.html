@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>MS Finanças v6.4.4</title>
+  <title>MS Finanças v6.8.0</title>
   
+  <link rel="manifest" href="manifest.json">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root { 
@@ -36,19 +39,15 @@
       font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.1s;
     }
-    .btn-action:active { transform: scale(0.98); }
 
-    /* Botão Sair */
-    .btn-sair {
-      background: rgba(231, 76, 60, 0.2); color: var(--red); border: 1px solid var(--red);
-      padding: 8px 15px; border-radius: 12px; font-weight: 700; cursor: pointer;
-      font-size: 0.8rem; transition: 0.3s;
+    .btn-pdf {
+      background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid var(--border);
+      padding: 8px 12px; border-radius: 12px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 5px;
     }
-    .btn-sair:hover { background: var(--red); color: white; }
     
-    #app-content { display: none; padding: 15px; max-width: 900px; margin: 0 auto; }
+    #app-content { display: none; padding: 15px; max-width: 1000px; margin: 0 auto; }
 
-    .header-app { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .header-app { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
 
     .tab-bar { 
       display: flex; background: var(--card-bg); backdrop-filter: blur(10px);
@@ -60,41 +59,29 @@
     }
     .tab-btn.active { background: var(--blue); color: #fff; }
     
-    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .card { 
       padding: 15px; border-radius: 22px; background: var(--card-bg); 
-      border: 1px solid var(--border); height: 150px; display: flex; 
+      border: 1px solid var(--border); height: 140px; display: flex; 
       flex-direction: column; justify-content: center; position: relative; 
       overflow: hidden; backdrop-filter: blur(5px);
     }
     .card h2 { margin: 0 0 8px 0; font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
     .card p { margin: 0; font-size: 1.1rem; font-weight: 800; color: #fff; }
-    
-    .label-uso-destaque { color: var(--red) !important; font-weight: 800; }
-    .label-disp-destaque { color: var(--green) !important; font-weight: 800; }
-
-    .barra-progresso { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.05); }
-    .fill { height: 100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 
     .secao { 
       background: var(--card-bg); padding: 20px; border-radius: 24px; 
       margin-bottom: 20px; border: 1px solid var(--border); 
     }
-    .secao h3 { margin-top: 0; font-size: 1.1rem; color: var(--blue); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
     .linha-item { 
       display: flex; align-items: center; padding: 15px 0; 
       border-bottom: 1px solid rgba(255,255,255,0.05); gap: 12px; 
     }
     
-    .check-pg { 
-      width: 38px; height: 38px; border: 2px solid #475569; border-radius: 12px; 
-      display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
-    }
-    .check-pg.pago { background: var(--green); border-color: var(--green); }
-    .check-pg.pago::after { content: '✓'; color: white; font-weight: 900; }
+    .cat-tag { font-size: 0.65rem; padding: 3px 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: #94a3b8; margin-top: 4px; display: inline-block; }
 
-    .chart-container { width: 100%; max-width: 220px; margin: 15px auto; height: 220px; }
+    .chart-container { width: 100%; max-width: 300px; margin: 20px auto; height: 300px; }
 
     .modal { 
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
@@ -104,8 +91,6 @@
     
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-
-    .badge-atraso { color: var(--red); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-left: 5px; }
   </style>
 </head>
 <body>
@@ -121,8 +106,9 @@
 
   <div id="app-content">
     <header class="header-app">
-      <select id="mes_select" onchange="renderizar();" style="margin-bottom: 0; flex: 1;"></select>
-      <button class="btn-sair" onclick="auth.signOut()">Sair</button>
+      <select id="mes_select" onchange="renderizar();" style="margin-bottom: 0; flex: 1; min-width: 150px;"></select>
+      <button class="btn-pdf" onclick="gerarPDF()">📄 PDF</button>
+      <button onclick="auth.signOut()" style="background:none; border:none; color:var(--red); font-weight:bold; cursor:pointer;">Sair</button>
     </header>
 
     <nav class="tab-bar">
@@ -134,27 +120,10 @@
 
     <main id="aba-resumo" class="tab-content active">
       <div class="cards-grid">
-        <div class="card">
-            <h2>💎 Renda Extra</h2>
-            <p id="r-extra">R$ 0,00</p>
-            <div class="barra-progresso"><div id="f-extra" class="fill"></div></div>
-        </div>
-        <div class="card">
-            <h2>💰 Salário (01-15)</h2>
-            <p id="r-salario">R$ 0,00</p>
-            <div class="barra-progresso"><div id="f-salario" class="fill"></div></div>
-        </div>
-        <div class="card">
-            <h2>📅 Adiantam. (16-31)</h2>
-            <p id="r-adiant">R$ 0,00</p>
-            <div class="barra-progresso"><div id="f-adiant" class="fill"></div></div>
-        </div>
-        <div class="card">
-            <h2>💳 Crédito</h2>
-            <p style="font-size: 0.9rem; color:#94a3b8">Uso: <span id="c-uso-val" class="label-uso-destaque">R$ 0</span></p>
-            <p style="font-size: 0.9rem; color:#94a3b8">Disp: <span id="c-disp-val" class="label-disp-destaque">R$ 0</span></p>
-            <div class="barra-progresso"><div id="f-cartao" class="fill"></div></div>
-        </div>
+        <div class="card"><h2>💎 Renda Extra</h2><p id="r-extra">R$ 0,00</p></div>
+        <div class="card"><h2>💰 Salário</h2><p id="r-salario">R$ 0,00</p></div>
+        <div class="card"><h2>📅 Adiantam.</h2><p id="r-adiant">R$ 0,00</p></div>
+        <div class="card"><h2>💳 Crédito Disp.</h2><p id="c-disp-val">R$ 0,00</p></div>
       </div>
       <div class="chart-container"><canvas id="meuGrafico"></canvas></div>
     </main>
@@ -170,14 +139,9 @@
 
     <main id="aba-despesas" class="tab-content">
       <div class="secao">
-        <h3>Despesas Fixas</h3>
-        <div id="l-contas-fixas"></div>
-        <button onclick="abrirModal('contas_fixas')" class="btn-action" style="background:var(--orange)">+ Nova Despesa Fixa</button>
-      </div>
-      <div class="secao">
-        <h3>Despesas Variáveis</h3>
-        <div id="l-contas-variaveis"></div>
-        <button onclick="abrirModal('contas_variaveis')" class="btn-action" style="background:var(--yellow); color:#000">+ Nova Despesa Variável</button>
+        <h3>Contas</h3>
+        <div id="l-contas-geral"></div>
+        <button onclick="abrirModal('contas_fixas')" class="btn-action" style="background:var(--orange)">+ Nova Despesa</button>
       </div>
     </main>
 
@@ -185,7 +149,6 @@
       <div class="secao">
         <label>Limite Cartão:</label>
         <input type="number" id="c-limite" onchange="salvarLimite(this.value)">
-        <h3>Antecipações</h3>
         <div id="l-pgs"></div>
         <button onclick="abrirModal('pgs')" class="btn-action" style="background:var(--blue)">+ Antecipar Fatura</button>
       </div>
@@ -194,9 +157,16 @@
 
   <div id="modal-input" class="modal"><div class="modal-content">
     <h3 id="input-titulo" style="margin-top:0; color:#fff">Novo Registro</h3>
-    <div id="div-desc"><input type="text" id="in-desc" placeholder="Descrição"></div>
+    <input type="text" id="in-desc" placeholder="Descrição (Ex: Aluguel)">
     <input type="number" id="in-valor" placeholder="Valor R$">
-    <div id="div-data"><input type="date" id="in-data"></div>
+    <select id="in-cat">
+        <option value="Essencial">Essencial</option>
+        <option value="Lazer">Lazer</option>
+        <option value="Saúde">Saúde</option>
+        <option value="Educação">Educação</option>
+        <option value="Outros">Outros</option>
+    </select>
+    <input type="date" id="in-data">
     <button class="btn-action" style="background:var(--blue)" onclick="salvarNovo()">Salvar</button>
     <button class="btn-action" style="background:#334155" onclick="fecharModais()">Cancelar</button>
   </div></div>
@@ -204,13 +174,17 @@
   <div id="modal-pagar" class="modal"><div class="modal-content">
     <h3 style="margin-top:0; color:#fff">Pagar Conta</h3>
     <p id="pg-info" style="color:#94a3b8; margin-bottom: 20px;"></p>
-    <button class="btn-action" style="background:var(--blue)" onclick="processarPagamento('debito')">Débito (Salário/Ad.)</button>
+    <button class="btn-action" style="background:var(--blue)" onclick="processarPagamento('debito')">Salário/Ad.</button>
     <button class="btn-action" style="background:var(--green)" onclick="processarPagamento('extra')">Renda Extra</button>
     <button id="btn-pg-credito" class="btn-action" style="background:var(--red)" onclick="processarPagamento('credito')">Cartão de Crédito</button>
     <button class="btn-action" style="background:#334155" onclick="fecharModais()">Voltar</button>
   </div></div>
 
   <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+
     const firebaseConfig = { apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0", authDomain: "ms-financas.firebaseapp.com", projectId: "ms-financas", storageBucket: "ms-financas.firebasestorage.app", messagingSenderId: "825396392769", appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
@@ -218,22 +192,15 @@
 
     const fmt = v => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
     
-    const fmtDataBR = (dataISO) => {
-        if(!dataISO) return "";
-        const [ano, mes, dia] = dataISO.split('-');
-        return `${dia}/${mes}/${ano}`;
-    };
-
     auth.onAuthStateChanged(user => {
       document.getElementById('tela-login').style.display = user ? 'none' : 'flex';
       document.getElementById('app-content').style.display = user ? 'block' : 'none';
       if(user) { uid = user.uid; sync(); }
     });
 
-    async function autenticar(m) {
+    async function autenticar() {
       const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
-      if(!e || !p) return;
-      try { await auth.signInWithEmailAndPassword(e,p); } catch(err) { alert(err.message); }
+      try { await auth.signInWithEmailAndPassword(e,p); } catch(err) { alert("Erro ao entrar."); }
     }
 
     async function sync() {
@@ -246,12 +213,6 @@
 
     async function save() { await db.collection("usuarios").doc(uid).set(dados); renderizar(); }
     function salvarLimite(v) { if(!dados.config) dados.config = {}; dados.config.limite = parseFloat(v) || 0; save(); }
-
-    function getCor(percent) {
-        if(percent < 60) return '#2ecc71';
-        if(percent < 80) return '#e67e22';
-        return '#e74c3c';
-    }
 
     function renderizar() {
       const mes = document.getElementById("mes_select").value;
@@ -275,32 +236,11 @@
         } else if(c.fonte === 'credito') { fatura += c.v; }
       });
 
-      d.pgs.forEach(p => {
-          fatura -= p.v;
-          if(p.fonte === 'debito') {
-              let dia = parseInt(p.data.split('-')[2]);
-              if(dia <= 15) dSalario += p.v; else dAdiant += p.v;
-          } else if(p.fonte === 'extra') dExtra += p.v;
-      });
-
       const lim = dados.config?.limite || 0;
-      
       document.getElementById('r-extra').innerText = fmt(bExtra - dExtra);
-      document.getElementById('f-extra').style.width = Math.min((dExtra/(bExtra||1))*100, 100) + "%";
-      document.getElementById('f-extra').style.background = getCor((dExtra/(bExtra||1))*100);
-
       document.getElementById('r-salario').innerText = fmt(bSalario - dSalario);
-      document.getElementById('f-salario').style.width = Math.min((dSalario/(bSalario||1))*100, 100) + "%";
-      document.getElementById('f-salario').style.background = getCor((dSalario/(bSalario||1))*100);
-
       document.getElementById('r-adiant').innerText = fmt(bAdiant - dAdiant);
-      document.getElementById('f-adiant').style.width = Math.min((dAdiant/(bAdiant||1))*100, 100) + "%";
-      document.getElementById('f-adiant').style.background = getCor((dAdiant/(bAdiant||1))*100);
-
-      document.getElementById('c-uso-val').innerText = fmt(fatura);
       document.getElementById('c-disp-val').innerText = fmt(lim - fatura);
-      document.getElementById('f-cartao').style.width = Math.min((fatura/(lim||1))*100, 100) + "%";
-      document.getElementById('f-cartao').style.background = getCor((fatura/(lim||1))*100);
 
       desenharListas(d);
       atualizarGrafico(bSalario + bAdiant + bExtra, totalGasto);
@@ -309,62 +249,38 @@
     function desenharListas(d) {
       const lRec = document.getElementById('l-receitas'); lRec.innerHTML = "";
       [...d.r_fixas, ...d.r_extras].forEach(item => {
-        lRec.innerHTML += `<div class="linha-item"><div style="flex:1"><b style="color:#fff">${item.d}</b></div><span style="font-weight:700">${fmt(item.v)}</span></div>`;
+        lRec.innerHTML += `<div class="linha-item"><div style="flex:1"><b>${item.d}</b></div><span>${fmt(item.v)}</span></div>`;
       });
 
-      const lFixas = document.getElementById('l-contas-fixas'), lVars = document.getElementById('l-contas-variaveis');
-      lFixas.innerHTML = ""; lVars.innerHTML = "";
-      const hoje = new Date().toISOString().split('T')[0];
-
+      const lGeral = document.getElementById('l-contas-geral'); lGeral.innerHTML = "";
       d.contas.forEach((c, i) => {
-        const isVencida = !c.pago && c.data < hoje;
-        const html = `
+        lGeral.innerHTML += `
           <div class="linha-item">
-            <div class="check-pg ${c.pago?'pago':''}" onclick="tentarPagar(${i})"></div>
+            <div class="check-pg ${c.pago?'pago':''}" onclick="tentarPagar(${i})" style="width:30px; height:30px; border:2px solid #475569; border-radius:8px; background:${c.pago?'#2ecc71':'none'}"></div>
             <div style="flex:1">
-                <b style="color:#fff">${c.d}</b><br>
-                <small style="color:#94a3b8">${fmtDataBR(c.data)}</small> 
-                ${isVencida ? '<span class="badge-atraso">Atrasado</span>' : ''}
+                <b>${c.d}</b><br>
+                <span class="cat-tag">${c.cat || 'Geral'}</span>
             </div>
-            <span style="font-weight:700">${fmt(c.v)}</span>
-            <button onclick="excluir('contas', ${i})" style="border:none; background:none; color:var(--red); font-weight:bold; padding:10px;">X</button>
+            <span style="font-weight:bold">${fmt(c.v)}</span>
+            <button onclick="excluir('contas', ${i})" style="color:var(--red); border:none; background:none;">X</button>
           </div>`;
-        if(c.tipo === 'fixa') lFixas.innerHTML += html; else lVars.innerHTML += html;
-      });
-
-      const lPgs = document.getElementById('l-pgs'); lPgs.innerHTML = "";
-      d.pgs.forEach((p, i) => {
-          lPgs.innerHTML += `<div class="linha-item"><div style="flex:1"><b style="color:#fff">${p.d}</b></div><span style="font-weight:700">${fmt(p.v)}</span><button onclick="excluir('pgs', ${i})" style="border:none; background:none; color:var(--red); font-weight:bold; padding:10px;">X</button></div>`;
       });
     }
 
     function abrirModal(t) {
       pendente = { tipo: t };
-      document.getElementById('in-valor').value = "";
-      const dD = document.getElementById('div-desc'), dDt = document.getElementById('div-data');
       document.getElementById('in-data').value = new Date().toISOString().split('T')[0];
-      
-      if(t === 'pgs') { dD.style.display = 'none'; dDt.style.display = 'none'; pendente.d = "Antecipação Fatura"; }
-      else if(t === 'contas_variaveis') { dD.style.display = 'block'; dDt.style.display = 'none'; document.getElementById('in-desc').value = ""; }
-      else { dD.style.display = 'block'; dDt.style.display = 'block'; document.getElementById('in-desc').value = ""; }
       document.getElementById('modal-input').style.display = 'flex';
     }
 
     function salvarNovo() {
       const v = parseFloat(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value;
-      const dStr = document.getElementById('in-desc').value;
+      const dStr = document.getElementById('in-desc').value, ct = document.getElementById('in-cat').value;
       const mes = document.getElementById("mes_select").value;
-      if(pendente.tipo === 'pgs') {
-          pendente.v = v; pendente.data = dt;
-          document.getElementById('modal-input').style.display = 'none';
-          document.getElementById('btn-pg-credito').style.display = 'none';
-          document.getElementById('modal-pagar').style.display = 'flex';
-          return;
-      }
-      if(!v || (pendente.tipo !== 'pgs' && !dStr)) return;
-      if(pendente.tipo === 'contas_fixas') dados[mes].contas.push({ d: dStr, v, data: dt, pago: false, tipo: 'fixa' });
-      else if(pendente.tipo === 'contas_variaveis') dados[mes].contas.push({ d: dStr, v, data: dt, pago: false, tipo: 'variavel' });
-      else dados[mes][pendente.tipo].push({ d: dStr, v, data: dt, pago: false });
+      
+      if(pendente.tipo === 'contas_fixas') dados[mes].contas.push({ d: dStr, v, data: dt, cat: ct, pago: false });
+      else if(pendente.tipo === 'r_fixas' || pendente.tipo === 'r_extras') dados[mes][pendente.tipo].push({ d: dStr, v, data: dt });
+      
       fecharModais(); save();
     }
 
@@ -373,14 +289,13 @@
       if(c.pago) return;
       pendente = { tipo: 'contas', index: idx, v: c.v, d: c.d, data: c.data };
       document.getElementById('pg-info').innerText = `${c.d} - ${fmt(c.v)}`;
-      document.getElementById('btn-pg-credito').style.display = 'block';
       document.getElementById('modal-pagar').style.display = 'flex';
     }
 
     function processarPagamento(f) {
       const m = document.getElementById("mes_select").value;
-      if(pendente.tipo === 'contas') { dados[m].contas[pendente.index].pago = true; dados[m].contas[pendente.index].fonte = f; }
-      else { dados[m].pgs.push({ d: pendente.d, v: pendente.v, data: pendente.data, fonte: f }); }
+      dados[m].contas[pendente.index].pago = true; 
+      dados[m].contas[pendente.index].fonte = f;
       fecharModais(); save();
     }
 
@@ -388,7 +303,7 @@
     function excluir(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
 
     function popMeses() {
-      const s = document.getElementById("mes_select"); if(s.options.length>0) return;
+      const s = document.getElementById("mes_select");
       ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m,i)=>{
         let o = document.createElement("option"); o.value=`2026-${String(i+1).padStart(2,'0')}`; o.innerText=m;
         if(i===new Date().getMonth()) o.selected=true; s.appendChild(o);
@@ -407,8 +322,22 @@
       chartInstancia = new Chart(ctx, {
         type: 'doughnut',
         data: { labels: ['Renda', 'Gasto'], datasets: [{ data: [r, g], backgroundColor: ['#2ecc71', '#e74c3c'], borderWidth: 0 }] },
-        options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12 } } } }, maintainAspectRatio: false }
+        options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }, maintainAspectRatio: false }
       });
+    }
+
+    function gerarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const mesTxt = document.getElementById("mes_select").selectedOptions[0].text;
+        const d = dados[document.getElementById("mes_select").value];
+
+        doc.setFontSize(18); doc.text(`Relatório Financeiro - ${mesTxt}`, 14, 20);
+        
+        const rows = d.contas.map(c => [c.d, c.cat || 'Geral', c.pago ? 'Pago' : 'Pendente', fmt(c.v)]);
+        doc.autoTable({ head: [['Descrição', 'Categoria', 'Status', 'Valor']], body: rows, startY: 30 });
+        
+        doc.save(`Financas_${mesTxt}.pdf`);
     }
   </script>
 </body>
