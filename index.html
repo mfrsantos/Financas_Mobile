@@ -522,7 +522,7 @@
           <span class="secao-titulo">⚙️ Configuração</span>
         </div>
         <label style="font-size:0.78rem; color:var(--text-muted); margin-bottom:6px; display:block;">Limite do Cartão:</label>
-        <input type="number" id="c-limite" onchange="salvarLimite(this.value)" placeholder="R$ 0,00" style="margin-bottom:0;">
+        <input type="text" id="c-limite" inputmode="decimal" onblur="formatarInputValor(this); salvarLimite(this.value)" oninput="this.value=this.value.replace(/[^0-9,]/g,'')" placeholder="0,00" style="margin-bottom:0;">
       </div>
 
       <!-- Antecipações em grid -->
@@ -553,7 +553,7 @@
     <h3 id="input-titulo">Novo Registro</h3>
     <select id="in-tipo-fixo" style="display:none;"><option value="Salário">💰 Salário</option><option value="Adiantamento">📅 Adiantamento</option></select>
     <input type="text" id="in-desc" placeholder="Descrição">
-    <input type="number" id="in-valor" placeholder="Valor R$">
+    <input type="text" id="in-valor" placeholder="0,00" inputmode="decimal" onblur="formatarInputValor(this)" oninput="this.value=this.value.replace(/[^0-9,]/g,'')">
     <select id="in-cat">
         <option value="Essencial">🏠 Essencial</option>
         <option value="Lazer">🍕 Lazer / Comida</option>
@@ -570,7 +570,7 @@
   <div id="modal-antecipar" class="modal"><div class="modal-content">
     <div class="modal-handle"></div>
     <h3>⚡ Antecipar Fatura</h3>
-    <input type="number" id="ant-valor" placeholder="Valor R$">
+    <input type="text" id="ant-valor" placeholder="0,00" inputmode="decimal" onblur="formatarInputValor(this)" oninput="this.value=this.value.replace(/[^0-9,]/g,'')">
     <input type="date" id="ant-data">
     <button class="btn-action" style="background:var(--blue)" onclick="salvarAntecipacao('debito')">Debit. Salário/Ad.</button>
     <button class="btn-action" style="background:var(--green)" onclick="salvarAntecipacao('extra')">Debit. Extra</button>
@@ -609,6 +609,17 @@
 
     let dados = {}, uid = "", pendente = {}, chartGeral = null, chartCat = null;
     const fmt = v => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const fmtValor = v => Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+    const parseValor = s => parseFloat((s+'').replace(/\./g,'').replace(',','.')) || 0;
+
+    function formatarInputValor(el) {
+      const raw = parseValor(el.value);
+      if(!isNaN(raw) && raw > 0) el.value = fmtValor(raw);
+    }
+    function limparInputValor(el) {
+      const raw = parseValor(el.value);
+      if(!isNaN(raw) && raw > 0) el.value = fmtValor(raw);
+    }
     
     auth.onAuthStateChanged(user => {
       document.getElementById('loading-screen').style.display = 'none';
@@ -690,7 +701,7 @@
       popMeses();
       const doc = await db.collection("usuarios").doc(uid).get();
       dados = doc.exists ? doc.data() : { config: { limite: 0 } };
-      document.getElementById('c-limite').value = dados.config?.limite || 0;
+      document.getElementById('c-limite').value = fmtValor(dados.config?.limite || 0);
       renderizar();
     }
 
@@ -1128,7 +1139,7 @@
       pendente.isEdit = true;
       pendente.index = i;
       document.getElementById('in-desc').value = c.d;
-      document.getElementById('in-valor').value = c.v;
+      document.getElementById('in-valor').value = fmtValor(c.v);
       document.getElementById('in-data').value = c.data;
       document.getElementById('in-cat').value = c.cat;
       document.getElementById('btn-excluir-modal').style.display = 'block';
@@ -1142,13 +1153,13 @@
       pendente.isEdit = true;
       pendente.index = i;
       pendente.tipo = tipo;
-      document.getElementById('in-valor').value = r.v;
+      document.getElementById('in-valor').value = fmtValor(r.v);
       document.getElementById('in-data').value = r.data;
       if(tipo === 'r_fixas') document.getElementById('in-tipo-fixo').value = r.d;
       else document.getElementById('in-desc').value = r.d;
       document.getElementById('btn-excluir-modal').style.display = (tipo === 'r_extras') ? 'block' : 'none';
     }
-    function salvarNovo() { const v = parseFloat(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value, mes = document.getElementById("mes_select").value; const dStr = sanitizar((pendente.tipo === 'r_fixas') ? document.getElementById('in-tipo-fixo').value : document.getElementById('in-desc').value); if(!v) return; const obj = { d: dStr, v, data: dt, cat: document.getElementById('in-cat').value }; if(pendente.isEdit) { if(pendente.tipo === 'contas') dados[mes].contas[pendente.index] = { ...dados[mes].contas[pendente.index], ...obj }; else dados[mes][pendente.tipo][pendente.index] = obj; } else { if(pendente.tipo.includes('contas')) dados[mes].contas.push({ ...obj, pago: false }); else dados[mes][pendente.tipo].push(obj); } fecharModais(); save(); }
+    function salvarNovo() { const v = parseValor(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value, mes = document.getElementById("mes_select").value; const dStr = sanitizar((pendente.tipo === 'r_fixas') ? document.getElementById('in-tipo-fixo').value : document.getElementById('in-desc').value); if(!v) return; const obj = { d: dStr, v, data: dt, cat: document.getElementById('in-cat').value }; if(pendente.isEdit) { if(pendente.tipo === 'contas') dados[mes].contas[pendente.index] = { ...dados[mes].contas[pendente.index], ...obj }; else dados[mes][pendente.tipo][pendente.index] = obj; } else { if(pendente.tipo.includes('contas')) dados[mes].contas.push({ ...obj, pago: false }); else dados[mes][pendente.tipo].push(obj); } fecharModais(); save(); }
     function tentarPagar(i) { const m = document.getElementById("mes_select").value; const conta = dados[m].contas[i]; if(conta.pago) { if(confirm(`Estornar pago?`)) { conta.pago = false; save(); } return; } pendente = { index: i, v: conta.v, d: conta.d }; document.getElementById('pg-info').innerText = `${pendente.d} - ${fmt(pendente.v)}`; document.getElementById('modal-pagar').style.display = 'flex'; }
     function processarPagamento(f) { const m = document.getElementById("mes_select").value; dados[m].contas[pendente.index].pago = true; dados[m].contas[pendente.index].fonte = f; fecharModais(); save(); }
     function adiarConta() { const mAt = document.getElementById("mes_select").value; const conta = dados[mAt].contas[pendente.index]; let [ano, mes] = mAt.split('-').map(Number); mes++; if(mes > 12) { mes = 1; ano++; } const proxM = `${ano}-${String(mes).padStart(2, '0')}`; if(!dados[proxM]) dados[proxM] = { r_fixas: [], r_extras: [], contas: [], pgs: [] }; dados[proxM].contas.push({...conta, pago: false, data: `${proxM}-05`}); dados[mAt].contas.splice(pendente.index, 1); fecharModais(); save(); }
@@ -1175,9 +1186,9 @@
     }
 
     function excluir(t, i) { if(confirm("Excluir?")) { dados[document.getElementById("mes_select").value][t].splice(i,1); save(); } }
-    function salvarLimite(v) { if(!dados.config) dados.config = {}; dados.config.limite = parseFloat(v) || 0; save(); }
+    function salvarLimite(v) { if(!dados.config) dados.config = {}; dados.config.limite = parseValor(v) || 0; save(); }
     function abrirModalAntecipacao() { document.getElementById('ant-valor').value = ""; document.getElementById('modal-antecipar').style.display = 'flex'; }
-    function salvarAntecipacao(f) { const v = parseFloat(document.getElementById('ant-valor').value), dt = document.getElementById('ant-data').value, m = document.getElementById("mes_select").value; if(!v) return; dados[m].pgs.push({ v, data: dt, fonte: f }); fecharModais(); save(); }
+    function salvarAntecipacao(f) { const v = parseValor(document.getElementById('ant-valor').value), dt = document.getElementById('ant-data').value, m = document.getElementById("mes_select").value; if(!v) return; dados[m].pgs.push({ v, data: dt, fonte: f }); fecharModais(); save(); }
   </script>
 </body>
 </html>
