@@ -485,12 +485,12 @@
     </main>
 
     <main id="aba-receitas" class="tab-content">
-      <div class="secao"><h3>💰 Rendas Fixas</h3><div id="l-renda-fixa"></div><button onclick="abrirModal('r_fixas')" class="btn-action" style="background:var(--blue)">+ Salário / Adiantamento</button></div>
+      <div class="secao"><h3>💰 Renda Fixa</h3><div id="l-renda-fixa"></div><button onclick="abrirModal('r_fixas')" class="btn-action" style="background:var(--blue)">+ Salário / Adiantamento</button></div>
       <div class="secao"><h3>💎 Rendas Extras</h3><div id="l-renda-extra"></div><button onclick="abrirModal('r_extras')" class="btn-action" style="background:var(--green)">+ Renda Extra</button></div>
     </main>
 
     <main id="aba-despesas" class="tab-content">
-      <div class="secao"><h3>🏠 Fixas / Essenciais</h3><div id="l-contas-fixas"></div><button onclick="abrirModal('contas_fixas')" class="btn-action" style="background:var(--blue)">+ Adicionar Conta Essencial</button></div>
+      <div class="secao"><h3>🏠 Despesas Fixas</h3><div id="l-contas-fixas"></div><button onclick="abrirModal('contas_fixas')" class="btn-action" style="background:var(--blue)">+ Adicionar Conta Essencial</button></div>
       <div class="secao"><h3>🛒 Diversas / Lazer</h3><div id="l-contas-diversas"></div><button onclick="abrirModal('contas_diversas')" class="btn-action" style="background:var(--orange)">+ Adicionar Conta Diversa</button></div>
     </main>
 
@@ -717,33 +717,50 @@
       if(!dados[mes]) dados[mes] = { r_fixas: [], r_extras: [], contas: [], pgs: [] };
       const d = dados[mes];
 
-      let bSalario = d.r_fixas.filter(r => r.d.includes("Salário")).reduce((a,b)=>a+b.v,0);
-      let bAdiant = d.r_fixas.filter(r => r.d.includes("Adiantamento")).reduce((a,b)=>a+b.v,0);
-      let bExtra = d.r_extras.reduce((a,b)=>a+b.v,0);
-      let tLancado = d.contas.reduce((a,b)=>a+b.v,0);
-      let tPago = d.contas.filter(c=>c.pago).reduce((a,b)=>a+b.v,0);
+      // ── Salário do mês ANTERIOR (paga contas dia 01-14 do mês atual) ──
+      let [anoAtual, mesAtual] = mes.split('-').map(Number);
+      let mesAntNum = mesAtual - 1, anoAntNum = anoAtual;
+      if(mesAntNum < 1) { mesAntNum = 12; anoAntNum--; }
+      const mesAnterior = `${anoAntNum}-${String(mesAntNum).padStart(2,'0')}`;
+      const dAnt = dados[mesAnterior] || { r_fixas: [], r_extras: [], contas: [], pgs: [] };
 
+      // Salário vem do mês ANTERIOR; Adiantamento vem do mês ATUAL
+      let bSalario = dAnt.r_fixas.filter(r => r.d.includes("Salário")).reduce((a,b)=>a+b.v,0);
+      let bAdiant  = d.r_fixas.filter(r => r.d.includes("Adiantamento")).reduce((a,b)=>a+b.v,0);
+      let bExtra   = d.r_extras.reduce((a,b)=>a+b.v,0);
+      let tLancado = d.contas.reduce((a,b)=>a+b.v,0);
+      let tPago    = d.contas.filter(c=>c.pago).reduce((a,b)=>a+b.v,0);
+
+      // Gastos via débito: dia 01-14 → consome salário anterior; dia 15-31 → consome adiantamento atual
       let gDebitoSalario = 0, gDebitoAdiant = 0;
       d.contas.filter(c => c.pago && c.fonte === 'debito').forEach(c => {
           const dia = parseInt(c.data.split('-')[2]);
           if(dia <= 14) gDebitoSalario += c.v; else gDebitoAdiant += c.v;
       });
-      let gExtra = d.contas.filter(c => c.pago && c.fonte === 'extra').reduce((a,b)=>a+b.v,0);
+      let gExtra   = d.contas.filter(c => c.pago && c.fonte === 'extra').reduce((a,b)=>a+b.v,0);
       let gCredito = d.contas.filter(c => c.fonte === 'credito').reduce((a,b)=>a+b.v,0);
+
+      // Antecipações de cartão: mesma lógica de débito
       let antSal = 0, antAdi = 0;
       d.pgs.filter(p => p.fonte === 'debito').forEach(p => {
           if(parseInt(p.data.split('-')[2]) <= 14) antSal += p.v; else antAdi += p.v;
       });
       let antExt = d.pgs.filter(p => p.fonte === 'extra').reduce((a,b)=>a+b.v,0);
+
       const lim = dados.config?.limite || 0;
       const gastoRealCartao = Math.max(0, gCredito - (antSal + antAdi + antExt));
+
+      // Saldos disponíveis
+      const saldoSalario = bSalario - gDebitoSalario - antSal;
+      const saldoAdiant  = bAdiant  - gDebitoAdiant  - antAdi;
+      const saldoExtra   = bExtra   - gExtra          - antExt;
 
       document.getElementById('total-lancado').innerText = fmt(tLancado);
       document.getElementById('total-pago').innerText = fmt(tPago);
       document.getElementById('bar-quitacao').style.width = (tLancado > 0 ? (tPago/tLancado)*100 : 0) + "%";
-      document.getElementById('r-extra').innerText = fmt(bExtra - gExtra - antExt);
-      document.getElementById('r-salario').innerText = fmt(bSalario - gDebitoSalario - antSal);
-      document.getElementById('r-adiant').innerText = fmt(bAdiant - gDebitoAdiant - antAdi);
+      document.getElementById('r-extra').innerText   = fmt(saldoExtra);
+      document.getElementById('r-salario').innerText = fmt(saldoSalario);
+      document.getElementById('r-adiant').innerText  = fmt(saldoAdiant);
       document.getElementById('c-disp-val').innerText = fmt(lim - gastoRealCartao);
 
       desenharListas(d);
@@ -961,7 +978,7 @@
       doc.autoTable({
         ...estiloTabela,
         startY: doc.lastAutoTable.finalY + 8,
-        head: [['Rendas Fixas', 'Data', 'Valor']],
+        head: [['Renda Fixas', 'Data', 'Valor']],
         headStyles: { fontStyle: 'bold', textColor: 255, fillColor: corAzul },
         body: fixasBody,
         columnStyles: { 0: { cellWidth: 110 }, 1: { cellWidth: 42 }, 2: { cellWidth: 30, halign: 'right' } }
@@ -1017,7 +1034,7 @@
       doc.autoTable({
         ...estiloTabela,
         startY: doc.lastAutoTable.finalY + 8,
-        head: [['Fixas / Essenciais', 'Vencimento', 'Status', 'Pago Via', 'Valor']],
+        head: [['Despesas Fixas', 'Vencimento', 'Status', 'Pago Via', 'Valor']],
         headStyles: { fontStyle: 'bold', textColor: 255, fillColor: corLaranja },
         body: essBody,
         columnStyles: { 0: { cellWidth: 68 }, 1: { cellWidth: 28 }, 2: { cellWidth: 26 }, 3: { cellWidth: 38 }, 4: { cellWidth: 22, halign: 'right' } },
@@ -1157,7 +1174,7 @@
       document.getElementById('in-data').value = r.data;
       if(tipo === 'r_fixas') document.getElementById('in-tipo-fixo').value = r.d;
       else document.getElementById('in-desc').value = r.d;
-      document.getElementById('btn-excluir-modal').style.display = (tipo === 'r_extras') ? 'block' : 'none';
+      document.getElementById('btn-excluir-modal').style.display = 'block'; // visível para todos os tipos ao editar
     }
     function salvarNovo() { const v = parseValor(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value, mes = document.getElementById("mes_select").value; const dStr = sanitizar((pendente.tipo === 'r_fixas') ? document.getElementById('in-tipo-fixo').value : document.getElementById('in-desc').value); if(!v) return; const obj = { d: dStr, v, data: dt, cat: document.getElementById('in-cat').value }; if(pendente.isEdit) { if(pendente.tipo === 'contas') dados[mes].contas[pendente.index] = { ...dados[mes].contas[pendente.index], ...obj }; else dados[mes][pendente.tipo][pendente.index] = obj; } else { if(pendente.tipo.includes('contas')) dados[mes].contas.push({ ...obj, pago: false }); else dados[mes][pendente.tipo].push(obj); } fecharModais(); save(); }
     function tentarPagar(i) { const m = document.getElementById("mes_select").value; const conta = dados[m].contas[i]; if(conta.pago) { if(confirm(`Estornar pago?`)) { conta.pago = false; save(); } return; } pendente = { index: i, v: conta.v, d: conta.d }; document.getElementById('pg-info').innerText = `${pendente.d} - ${fmt(pendente.v)}`; document.getElementById('modal-pagar').style.display = 'flex'; }
@@ -1176,7 +1193,8 @@
       const idx  = pendente.index;
       let lista = null;
       if(tipo === 'r_extras')  lista = dados[m].r_extras;
-      else if(tipo === 'contas') lista = dados[m].contas;
+      else if(tipo === 'r_fixas') lista = dados[m].r_fixas;
+      else if(tipo === 'contas')  lista = dados[m].contas;
       if(!lista || idx === undefined || idx === null) return;
       const nome = lista[idx]?.d || 'este item';
       if(!confirm('Excluir "' + nome + '"?')) return;
