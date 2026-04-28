@@ -541,11 +541,23 @@
     <div class="modal-handle"></div>
     <h3>Pagar Conta</h3>
     <p id="pg-info" style="color:#94a3b8;"></p>
-    <button class="btn-action" style="background:var(--blue)" onclick="processarPagamento('debito')">Debit. Salário/Ad.</button>
+    <button class="btn-action" style="background:var(--blue)" onclick="abrirModalDebito()">Debit. Salário/Ad.</button>
     <button class="btn-action" style="background:var(--green)" onclick="processarPagamento('extra')">Debit. Extra</button>
     <button class="btn-action" style="background:var(--red)" onclick="processarPagamento('credito')">Cartão de Crédito</button>
     <button class="btn-action" style="background:var(--yellow); color:#000" onclick="adiarConta()">⏩ Adiar p/ Próximo Mês</button>
     <button class="btn-action" style="background:rgba(255,255,255,0.1)" onclick="fecharModais()">Voltar</button>
+  </div></div>
+
+  <!-- MODAL DÉBITO: escolher data de pagamento -->
+  <div id="modal-debito" class="modal"><div class="modal-content">
+    <div class="modal-handle"></div>
+    <h3>💳 Débito em Conta</h3>
+    <p id="debito-info" style="color:#94a3b8; margin-bottom:6px;"></p>
+    <p id="debito-saldo-info" style="font-size:0.82rem; font-weight:700; margin-bottom:10px;"></p>
+    <label style="font-size:0.78rem; color:var(--text-muted); margin-bottom:4px; display:block;">Data do pagamento:</label>
+    <input type="date" id="debito-data" oninput="atualizarInfoDebito()" style="margin-bottom:10px;">
+    <button class="btn-action" style="background:var(--blue)" onclick="confirmarDebito()">✅ Confirmar Pagamento</button>
+    <button class="btn-action" style="background:rgba(255,255,255,0.1)" onclick="voltarParaPagar()">← Voltar</button>
   </div></div>
 
   <div id="modal-input" class="modal"><div class="modal-content">
@@ -734,7 +746,8 @@
       // Gastos via débito: dia 01-14 → consome salário anterior; dia 15-31 → consome adiantamento atual
       let gDebitoSalario = 0, gDebitoAdiant = 0;
       d.contas.filter(c => c.pago && c.fonte === 'debito').forEach(c => {
-          const dia = parseInt(c.data.split('-')[2]);
+          const dataRef = c.data_pagamento || c.data;
+          const dia = parseInt((dataRef || '').split('-')[2] || 0);
           if(dia <= 14) gDebitoSalario += c.v; else gDebitoAdiant += c.v;
       });
       let gExtra   = d.contas.filter(c => c.pago && c.fonte === 'extra').reduce((a,b)=>a+b.v,0);
@@ -1126,7 +1139,7 @@
     
     // --- FUNÇÕES DE NAVEGAÇÃO E MODAL (PADRÃO) ---
     function mudarTab(e, n) { document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active')); document.getElementById('aba-'+n).classList.add('active'); e.target.classList.add('active'); }
-    function fecharModais() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
+    function fecharModais() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); document.getElementById('modal-debito').style.display='none'; }
     function popMeses() { const s = document.getElementById("mes_select"); if(s.options.length > 0) return; ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m,i)=>{ let o = document.createElement("option"); o.value=`2026-${String(i+1).padStart(2,'0')}`; o.innerText=m; if(i===new Date().getMonth()) o.selected=true; s.appendChild(o); }); }
     function abrirModal(t) {
       document.getElementById('in-desc').value = '';
@@ -1177,8 +1190,15 @@
       document.getElementById('btn-excluir-modal').style.display = 'block'; // visível para todos os tipos ao editar
     }
     function salvarNovo() { const v = parseValor(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value, mes = document.getElementById("mes_select").value; const dStr = sanitizar((pendente.tipo === 'r_fixas') ? document.getElementById('in-tipo-fixo').value : document.getElementById('in-desc').value); if(!v) return; const obj = { d: dStr, v, data: dt, cat: document.getElementById('in-cat').value }; if(pendente.isEdit) { if(pendente.tipo === 'contas') dados[mes].contas[pendente.index] = { ...dados[mes].contas[pendente.index], ...obj }; else dados[mes][pendente.tipo][pendente.index] = obj; } else { if(pendente.tipo.includes('contas')) dados[mes].contas.push({ ...obj, pago: false }); else dados[mes][pendente.tipo].push(obj); } fecharModais(); save(); }
-    function tentarPagar(i) { const m = document.getElementById("mes_select").value; const conta = dados[m].contas[i]; if(conta.pago) { if(confirm(`Estornar pagamento de "${conta.d}"?`)) { dados[m].contas[i].pago = false; dados[m].contas[i].fonte = null; save(); } return; } pendente = { index: i, v: conta.v, d: conta.d }; document.getElementById('pg-info').innerText = `${pendente.d} - ${fmt(pendente.v)}`; document.getElementById('modal-pagar').style.display = 'flex'; }
-    function processarPagamento(f) { const m = document.getElementById("mes_select").value; dados[m].contas[pendente.index].pago = true; dados[m].contas[pendente.index].fonte = f; fecharModais(); save(); }
+    function tentarPagar(i) { const m = document.getElementById("mes_select").value; const conta = dados[m].contas[i]; if(conta.pago) { if(confirm(`Estornar pagamento de "${conta.d}"?`)) { dados[m].contas[i].pago = false; dados[m].contas[i].fonte = null; dados[m].contas[i].data_pagamento = null; save(); } return; } pendente = { index: i, v: conta.v, d: conta.d }; document.getElementById('pg-info').innerText = `${pendente.d} - ${fmt(pendente.v)}`; document.getElementById('modal-pagar').style.display = 'flex'; }
+    function processarPagamento(f, dataPgto) {
+      const m = document.getElementById('mes_select').value;
+      dados[m].contas[pendente.index].pago  = true;
+      dados[m].contas[pendente.index].fonte = f;
+      dados[m].contas[pendente.index].data_pagamento = (f === 'debito' && dataPgto) ? dataPgto : null;
+      fecharModais();
+      save();
+    }
     function adiarConta() { const mAt = document.getElementById("mes_select").value; const conta = dados[mAt].contas[pendente.index]; let [ano, mes] = mAt.split('-').map(Number); mes++; if(mes > 12) { mes = 1; ano++; } const proxM = `${ano}-${String(mes).padStart(2, '0')}`; if(!dados[proxM]) dados[proxM] = { r_fixas: [], r_extras: [], contas: [], pgs: [] }; dados[proxM].contas.push({...conta, pago: false}); dados[mAt].contas.splice(pendente.index, 1); fecharModais(); save(); }
     function excluir(tipo, i) {
       const m = document.getElementById('mes_select').value;
@@ -1208,6 +1228,42 @@
     function salvarLimite(v) { if(!dados.config) dados.config = {}; dados.config.limite = parseValor(v) || 0; save(); }
     function abrirModalAntecipacao() { document.getElementById('ant-valor').value = ""; document.getElementById('modal-antecipar').style.display = 'flex'; }
     function salvarAntecipacao(f) { const v = parseValor(document.getElementById('ant-valor').value), dt = document.getElementById('ant-data').value, m = document.getElementById("mes_select").value; if(!v) return; dados[m].pgs.push({ v, data: dt, fonte: f }); fecharModais(); save(); }
+  
+    // ── DÉBITO COM DATA ──
+    function abrirModalDebito() {
+      const hoje = new Date().toISOString().split('T')[0];
+      document.getElementById('debito-data').value = hoje;
+      document.getElementById('debito-info').innerText = pendente.d + '  —  ' + fmt(pendente.v);
+      document.getElementById('modal-pagar').style.display  = 'none';
+      document.getElementById('modal-debito').style.display = 'flex';
+      atualizarInfoDebito();
+    }
+
+    function atualizarInfoDebito() {
+      const dataVal = document.getElementById('debito-data').value;
+      const el = document.getElementById('debito-saldo-info');
+      if(!dataVal) { el.innerText = ''; return; }
+      const dia = parseInt(dataVal.split('-')[2]);
+      if(dia <= 14) {
+        el.style.color = '#00a2ff';
+        el.innerText = '💰 Será debitado do Salário (dia 01 – 14)';
+      } else {
+        el.style.color = '#2ecc71';
+        el.innerText = '📅 Será debitado do Adiantamento (dia 15 – 31)';
+      }
+    }
+
+    function confirmarDebito() {
+      const dataVal = document.getElementById('debito-data').value;
+      if(!dataVal) { alert('Informe a data do pagamento.'); return; }
+      processarPagamento('debito', dataVal);
+    }
+
+    function voltarParaPagar() {
+      document.getElementById('modal-debito').style.display = 'none';
+      document.getElementById('modal-pagar').style.display  = 'flex';
+    }
+
   </script>
 </body>
 </html>
