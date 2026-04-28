@@ -490,7 +490,7 @@
     </main>
 
     <main id="aba-despesas" class="tab-content">
-      <div class="secao"><h3>🏠 Despesas Fixas</h3><div id="l-contas-fixas"></div><button onclick="abrirModal('contas_fixas')" class="btn-action" style="background:var(--blue)">+ Adicionar Conta Essencial</button></div>
+      <div class="secao"><h3>🏠 Despesas Fixas</h3><div id="l-contas-fixas"></div><button onclick="abrirModal('contas_fixas')" class="btn-action" style="background:var(--blue)">+ Adicionar Despesa Fixa</button></div>
       <div class="secao"><h3>🛒 Diversas / Lazer</h3><div id="l-contas-diversas"></div><button onclick="abrirModal('contas_diversas')" class="btn-action" style="background:var(--orange)">+ Adicionar Conta Diversa</button></div>
     </main>
 
@@ -543,7 +543,7 @@
     <p id="pg-info" style="color:#94a3b8;"></p>
     <button class="btn-action" style="background:var(--blue)" onclick="abrirModalDebito()">Debit. Salário/Ad.</button>
     <button class="btn-action" style="background:var(--green)" onclick="processarPagamento('extra')">Debit. Extra</button>
-    <button class="btn-action" style="background:var(--red)" onclick="processarPagamento('credito')">Cartão de Crédito</button>
+    <button class="btn-action" style="background:var(--red)" onclick="abrirModalCredito()">Cartão de Crédito</button>
     <button class="btn-action" style="background:var(--yellow); color:#000" onclick="adiarConta()">⏩ Adiar p/ Próximo Mês</button>
     <button class="btn-action" style="background:rgba(255,255,255,0.1)" onclick="fecharModais()">Voltar</button>
   </div></div>
@@ -560,6 +560,22 @@
     <button class="btn-action" style="background:rgba(255,255,255,0.1)" onclick="voltarParaPagar()">← Voltar</button>
   </div></div>
 
+  <!-- MODAL CRÉDITO: valor com juros -->
+  <div id="modal-credito" class="modal"><div class="modal-content">
+    <div class="modal-handle"></div>
+    <h3>💳 Pagar com Cartão</h3>
+    <p id="credito-info" style="color:#94a3b8; margin-bottom:6px;"></p>
+    <label style="font-size:0.78rem; color:var(--text-muted); margin-bottom:4px; display:block;">Valor cobrado no cartão (com juros):</label>
+    <input type="text" id="credito-valor" inputmode="decimal"
+      placeholder="0,00"
+      onblur="formatarInputValor(this); atualizarInfoCredito()"
+      oninput="this.value=this.value.replace(/[^0-9,]/g,''); atualizarInfoCredito()"
+      style="margin-bottom:6px;">
+    <p id="credito-juros-info" style="font-size:0.82rem; font-weight:700; margin-bottom:10px;"></p>
+    <button class="btn-action" style="background:var(--red)" onclick="confirmarCredito()">✅ Confirmar Pagamento</button>
+    <button class="btn-action" style="background:rgba(255,255,255,0.1)" onclick="voltarParaPagarCredito()">← Voltar</button>
+  </div></div>
+
   <div id="modal-input" class="modal"><div class="modal-content">
     <div class="modal-handle"></div>
     <h3 id="input-titulo">Novo Registro</h3>
@@ -567,7 +583,7 @@
     <input type="text" id="in-desc" placeholder="Descrição">
     <input type="text" id="in-valor" placeholder="0,00" inputmode="decimal" onblur="formatarInputValor(this)" oninput="this.value=this.value.replace(/[^0-9,]/g,'')">
     <select id="in-cat">
-        <option value="Essencial">🏠 Essencial</option>
+        <option value="Essencial">🏠 Moradia</option>
         <option value="Lazer">🍕 Lazer / Comida</option>
         <option value="Saúde">🏥 Saúde</option>
         <option value="Transporte">🚗 Transporte</option>
@@ -777,8 +793,9 @@
       document.getElementById('c-disp-val').innerText = fmt(lim - gastoRealCartao);
 
       desenharListas(d);
-      const cats = { "Essencial": 0, "Lazer": 0, "Saúde": 0, "Transporte": 0, "Outros": 0 };
-      d.contas.forEach(c => { cats[c.cat] = (cats[c.cat] || 0) + c.v; });
+      const cats = { "Moradia": 0, "Lazer": 0, "Saúde": 0, "Transporte": 0, "Outros": 0 };
+      d.contas.forEach(c => { const catLabel = c.cat === 'Essencial' ? 'Moradia' : c.cat;
+      cats[catLabel] = (cats[catLabel] || 0) + c.v; });
       atualizarGraficos(bSalario + bAdiant + bExtra, tPago, cats);
     }
 
@@ -862,7 +879,7 @@
       const diversas   = d.contas.filter(c => c.cat !== 'Essencial');
 
       if(essenciais.length === 0) {
-        lFixas.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>Nenhuma conta essencial lançada</p></div>';
+        lFixas.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>Nenhuma despesa fixa lançada</p></div>';
       } else {
         lFixas.innerHTML = '<div class="cards-grid">' + essenciais.map((c) => renderConta(c, d.contas.indexOf(c))).join('') + '</div>';
       }
@@ -1037,7 +1054,7 @@
           { content: fmt(c.v), styles: { halign: 'right' } }
         ];
       });
-      if(essBody.length === 0) essBody.push([{ content: 'Nenhuma conta essencial lancada', colSpan: 5, styles: { fontStyle: 'italic', textColor: corCinza, halign: 'center' } }]);
+      if(essBody.length === 0) essBody.push([{ content: 'Nenhuma despesa fixa lancada', colSpan: 5, styles: { fontStyle: 'italic', textColor: corCinza, halign: 'center' } }]);
       const totalEss = essenciais.reduce((a,b)=>a+b.v,0);
       essBody.push([
         { content: 'Total', colSpan: 4, styles: { fontStyle: 'bold' } },
@@ -1139,7 +1156,7 @@
     
     // --- FUNÇÕES DE NAVEGAÇÃO E MODAL (PADRÃO) ---
     function mudarTab(e, n) { document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active')); document.getElementById('aba-'+n).classList.add('active'); e.target.classList.add('active'); }
-    function fecharModais() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); document.getElementById('modal-debito').style.display='none'; }
+    function fecharModais() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
     function popMeses() { const s = document.getElementById("mes_select"); if(s.options.length > 0) return; ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].forEach((m,i)=>{ let o = document.createElement("option"); o.value=`2026-${String(i+1).padStart(2,'0')}`; o.innerText=m; if(i===new Date().getMonth()) o.selected=true; s.appendChild(o); }); }
     function abrirModal(t) {
       document.getElementById('in-desc').value = '';
@@ -1155,7 +1172,7 @@
       // Categoria: APENAS para contas, nunca para rendas
       document.getElementById('in-cat').style.display = ehRenda ? 'none' : 'block';
       // Título do modal
-      const titulos = { r_fixas: '💰 Renda Fixa', r_extras: '💎 Renda Extra', contas_fixas: '🏠 Conta Essencial', contas_diversas: '🛒 Conta Diversa', contas: '📋 Nova Conta' };
+      const titulos = { r_fixas: '💰 Renda Fixa', r_extras: '💎 Renda Extra', contas_fixas: '🏠 Despesa Fixa', contas_diversas: '🛒 Conta Diversa', contas: '📋 Nova Conta' };
       document.getElementById('input-titulo').innerText = titulos[t] || 'Novo Registro';
       document.getElementById('btn-excluir-modal').style.display = 'none'; document.getElementById('modal-input').style.display = 'flex';
     }
@@ -1189,7 +1206,13 @@
       else document.getElementById('in-desc').value = r.d;
       document.getElementById('btn-excluir-modal').style.display = 'block'; // visível para todos os tipos ao editar
     }
-    function salvarNovo() { const v = parseValor(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value, mes = document.getElementById("mes_select").value; const dStr = sanitizar((pendente.tipo === 'r_fixas') ? document.getElementById('in-tipo-fixo').value : document.getElementById('in-desc').value); if(!v) return; const obj = { d: dStr, v, data: dt, cat: document.getElementById('in-cat').value }; if(pendente.isEdit) { if(pendente.tipo === 'contas') dados[mes].contas[pendente.index] = { ...dados[mes].contas[pendente.index], ...obj }; else dados[mes][pendente.tipo][pendente.index] = obj; } else { if(pendente.tipo.includes('contas')) dados[mes].contas.push({ ...obj, pago: false }); else dados[mes][pendente.tipo].push(obj); } fecharModais(); save(); }
+    function salvarNovo() { const v = parseValor(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value, mes = document.getElementById("mes_select").value; const dStr = sanitizar((pendente.tipo === 'r_fixas') ? document.getElementById('in-tipo-fixo').value : document.getElementById('in-desc').value); if(!v) return; const obj = { d: dStr, v, data: dt, cat: document.getElementById('in-cat').value }; if(pendente.isEdit) { if(pendente.tipo === 'contas') dados[mes].contas[pendente.index] = { ...dados[mes].contas[pendente.index], ...obj }; else dados[mes][pendente.tipo][pendente.index] = obj; } else { if(pendente.tipo.includes('contas')) dados[mes].contas.push({ ...obj, pago: false }); else dados[mes][pendente.tipo].push(obj); } fecharModais();
+      // Limpar campos para próxima inserção
+      document.getElementById('in-desc').value  = '';
+      document.getElementById('in-valor').value = '';
+      document.getElementById('in-cat').selectedIndex = 0;
+      save();
+    }
     function tentarPagar(i) { const m = document.getElementById("mes_select").value; const conta = dados[m].contas[i]; if(conta.pago) { if(confirm(`Estornar pagamento de "${conta.d}"?`)) { dados[m].contas[i].pago = false; dados[m].contas[i].fonte = null; dados[m].contas[i].data_pagamento = null; save(); } return; } pendente = { index: i, v: conta.v, d: conta.d }; document.getElementById('pg-info').innerText = `${pendente.d} - ${fmt(pendente.v)}`; document.getElementById('modal-pagar').style.display = 'flex'; }
     function processarPagamento(f, dataPgto) {
       const m = document.getElementById('mes_select').value;
@@ -1199,7 +1222,13 @@
       fecharModais();
       save();
     }
-    function adiarConta() { const mAt = document.getElementById("mes_select").value; const conta = dados[mAt].contas[pendente.index]; let [ano, mes] = mAt.split('-').map(Number); mes++; if(mes > 12) { mes = 1; ano++; } const proxM = `${ano}-${String(mes).padStart(2, '0')}`; if(!dados[proxM]) dados[proxM] = { r_fixas: [], r_extras: [], contas: [], pgs: [] }; dados[proxM].contas.push({...conta, pago: false}); dados[mAt].contas.splice(pendente.index, 1); fecharModais(); save(); }
+    function adiarConta() { const mAt = document.getElementById("mes_select").value; const conta = dados[mAt].contas[pendente.index]; let [ano, mes] = mAt.split('-').map(Number); mes++; if(mes > 12) { mes = 1; ano++; } const proxM = `${ano}-${String(mes).padStart(2, '0')}`; if(!dados[proxM]) dados[proxM] = { r_fixas: [], r_extras: [], contas: [], pgs: [] }; dados[proxM].contas.push({...conta, pago: false}); dados[mAt].contas.splice(pendente.index, 1); fecharModais();
+      // Limpar campos para próxima inserção
+      document.getElementById('in-desc').value  = '';
+      document.getElementById('in-valor').value = '';
+      document.getElementById('in-cat').selectedIndex = 0;
+      save();
+    }
     function excluir(tipo, i) {
       const m = document.getElementById('mes_select').value;
       if(!dados[m] || !dados[m][tipo]) return;
@@ -1262,6 +1291,53 @@
     function voltarParaPagar() {
       document.getElementById('modal-debito').style.display = 'none';
       document.getElementById('modal-pagar').style.display  = 'flex';
+    }
+
+  
+    // ── CRÉDITO COM JUROS ──
+    function abrirModalCredito() {
+      const valorOriginal = fmt(pendente.v);
+      document.getElementById('credito-info').innerText = pendente.d + '  —  Valor original: ' + valorOriginal;
+      document.getElementById('credito-valor').value = fmtValor(pendente.v);
+      document.getElementById('modal-pagar').style.display  = 'none';
+      document.getElementById('modal-credito').style.display = 'flex';
+      atualizarInfoCredito();
+    }
+
+    function atualizarInfoCredito() {
+      const el       = document.getElementById('credito-juros-info');
+      const novoVal  = parseValor(document.getElementById('credito-valor').value);
+      const original = pendente.v || 0;
+      if(!novoVal || novoVal <= 0) { el.innerText = ''; return; }
+      const juros = novoVal - original;
+      if(juros > 0) {
+        el.style.color = '#e74c3c';
+        el.innerText = '⚠️ Juros: + ' + fmt(juros) + '  |  Total no cartão: ' + fmt(novoVal);
+      } else if(juros < 0) {
+        el.style.color = '#2ecc71';
+        el.innerText = '✅ Desconto: ' + fmt(Math.abs(juros)) + '  |  Total no cartão: ' + fmt(novoVal);
+      } else {
+        el.style.color = '#94a3b8';
+        el.innerText = '✅ Sem juros — mesmo valor original.';
+      }
+    }
+
+    function confirmarCredito() {
+      const novoValor = parseValor(document.getElementById('credito-valor').value);
+      if(!novoValor || novoValor <= 0) { alert('Informe o valor cobrado no cartão.'); return; }
+      const m = document.getElementById('mes_select').value;
+      // Atualiza o valor da conta com o valor do cartão (pode incluir juros)
+      dados[m].contas[pendente.index].v     = novoValor;
+      dados[m].contas[pendente.index].pago  = true;
+      dados[m].contas[pendente.index].fonte = 'credito';
+      dados[m].contas[pendente.index].data_pagamento = null;
+      fecharModais();
+      save();
+    }
+
+    function voltarParaPagarCredito() {
+      document.getElementById('modal-credito').style.display = 'none';
+      document.getElementById('modal-pagar').style.display   = 'flex';
     }
 
   </script>
