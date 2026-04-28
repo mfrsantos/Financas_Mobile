@@ -954,8 +954,8 @@
           ['Renda Total', fmt(totalRenda)],
           ['Gasto Total', fmt(totalGastos)],
           [
-            { content: 'Saldo Previsto', styles: { fontStyle: 'bold', textColor: [27,152,86] } },
-            { content: fmt(saldo),        styles: { fontStyle: 'bold', textColor: [27,152,86], halign: 'right' } }
+            { content: 'Saldo Previsto', styles: { fontStyle: 'bold', textColor: saldo < 0 ? [192,57,43] : [27,152,86] } },
+            { content: fmt(saldo),        styles: { fontStyle: 'bold', textColor: saldo < 0 ? [192,57,43] : [27,152,86], halign: 'right' } }
           ]
         ],
         columnStyles: { 0: { cellWidth: 140 }, 1: { cellWidth: 42, halign: 'right' } }
@@ -1177,9 +1177,9 @@
       document.getElementById('btn-excluir-modal').style.display = 'block'; // visível para todos os tipos ao editar
     }
     function salvarNovo() { const v = parseValor(document.getElementById('in-valor').value), dt = document.getElementById('in-data').value, mes = document.getElementById("mes_select").value; const dStr = sanitizar((pendente.tipo === 'r_fixas') ? document.getElementById('in-tipo-fixo').value : document.getElementById('in-desc').value); if(!v) return; const obj = { d: dStr, v, data: dt, cat: document.getElementById('in-cat').value }; if(pendente.isEdit) { if(pendente.tipo === 'contas') dados[mes].contas[pendente.index] = { ...dados[mes].contas[pendente.index], ...obj }; else dados[mes][pendente.tipo][pendente.index] = obj; } else { if(pendente.tipo.includes('contas')) dados[mes].contas.push({ ...obj, pago: false }); else dados[mes][pendente.tipo].push(obj); } fecharModais(); save(); }
-    function tentarPagar(i) { const m = document.getElementById("mes_select").value; const conta = dados[m].contas[i]; if(conta.pago) { if(confirm(`Estornar pago?`)) { conta.pago = false; save(); } return; } pendente = { index: i, v: conta.v, d: conta.d }; document.getElementById('pg-info').innerText = `${pendente.d} - ${fmt(pendente.v)}`; document.getElementById('modal-pagar').style.display = 'flex'; }
+    function tentarPagar(i) { const m = document.getElementById("mes_select").value; const conta = dados[m].contas[i]; if(conta.pago) { if(confirm(`Estornar pagamento de "${conta.d}"?`)) { dados[m].contas[i].pago = false; dados[m].contas[i].fonte = null; save(); } return; } pendente = { index: i, v: conta.v, d: conta.d }; document.getElementById('pg-info').innerText = `${pendente.d} - ${fmt(pendente.v)}`; document.getElementById('modal-pagar').style.display = 'flex'; }
     function processarPagamento(f) { const m = document.getElementById("mes_select").value; dados[m].contas[pendente.index].pago = true; dados[m].contas[pendente.index].fonte = f; fecharModais(); save(); }
-    function adiarConta() { const mAt = document.getElementById("mes_select").value; const conta = dados[mAt].contas[pendente.index]; let [ano, mes] = mAt.split('-').map(Number); mes++; if(mes > 12) { mes = 1; ano++; } const proxM = `${ano}-${String(mes).padStart(2, '0')}`; if(!dados[proxM]) dados[proxM] = { r_fixas: [], r_extras: [], contas: [], pgs: [] }; dados[proxM].contas.push({...conta, pago: false, data: `${proxM}-05`}); dados[mAt].contas.splice(pendente.index, 1); fecharModais(); save(); }
+    function adiarConta() { const mAt = document.getElementById("mes_select").value; const conta = dados[mAt].contas[pendente.index]; let [ano, mes] = mAt.split('-').map(Number); mes++; if(mes > 12) { mes = 1; ano++; } const proxM = `${ano}-${String(mes).padStart(2, '0')}`; if(!dados[proxM]) dados[proxM] = { r_fixas: [], r_extras: [], contas: [], pgs: [] }; dados[proxM].contas.push({...conta, pago: false}); dados[mAt].contas.splice(pendente.index, 1); fecharModais(); save(); }
     function excluir(tipo, i) {
       const m = document.getElementById('mes_select').value;
       if(!dados[m] || !dados[m][tipo]) return;
@@ -1195,7 +1195,8 @@
       if(tipo === 'r_extras')  lista = dados[m].r_extras;
       else if(tipo === 'r_fixas') lista = dados[m].r_fixas;
       else if(tipo === 'contas')  lista = dados[m].contas;
-      if(!lista || idx === undefined || idx === null) return;
+      if(!dados[m]) return;
+      if(!lista || idx == null || idx < 0 || idx >= lista.length) return;
       const nome = lista[idx]?.d || 'este item';
       if(!confirm('Excluir "' + nome + '"?')) return;
       lista.splice(idx, 1);
