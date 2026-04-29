@@ -966,8 +966,15 @@
       doc.line(14, 29, 196, 29);
 
       // --- CALCULOS ---
-      const bSalario = d.r_fixas.filter(r=>r.d==="💰 Salário").reduce((a,b)=>a+b.v,0);
-      const bAdiant  = d.r_fixas.filter(r=>r.d==="📅 Adiantamento").reduce((a,b)=>a+b.v,0);
+      // Salário vem do mês ANTERIOR (mesma lógica da tela)
+      let [anoAtualPdf, mesAtualPdf] = mesVal.split('-').map(Number);
+      let mesAntNumPdf = mesAtualPdf - 1, anoAntNumPdf = anoAtualPdf;
+      if(mesAntNumPdf < 1) { mesAntNumPdf = 12; anoAntNumPdf--; }
+      const mesAnteriorPdf = `${anoAntNumPdf}-${String(mesAntNumPdf).padStart(2,'0')}`;
+      const dAnt = dados[mesAnteriorPdf] || { r_fixas: [], r_extras: [], contas: [], pgs: [] };
+
+      const bSalario = dAnt.r_fixas.filter(r=>r.d.includes("Salário")).reduce((a,b)=>a+b.v,0);
+      const bAdiant  = d.r_fixas.filter(r=>r.d.includes("Adiantamento")).reduce((a,b)=>a+b.v,0);
       const bExtra   = d.r_extras.reduce((a,b)=>a+b.v,0);
       const totalRenda  = bSalario + bAdiant + bExtra;
       const totalGastos = d.contas.reduce((a,b)=>a+b.v,0);
@@ -993,13 +1000,18 @@
 
       // ===== 2. RENDAS FIXAS =====
       const nomesFixos = { "💰 Salário": "Salario", "📅 Adiantamento": "Adiantamento" };
-      const fixasBody = d.r_fixas.map(r => [
+      // Salário vem de dAnt, Adiantamento vem de d
+      const rfixasExibir = [
+        ...dAnt.r_fixas.filter(r => r.d.includes('Salário')),
+        ...d.r_fixas.filter(r => r.d.includes('Adiantamento'))
+      ];
+      const fixasBody = rfixasExibir.map(r => [
         nomesFixos[r.d] || r.d,
         r.data ? r.data.split('-').reverse().join('/') : '-',
         { content: fmt(r.v), styles: { halign: 'right' } }
       ]);
       if(fixasBody.length === 0) fixasBody.push([{ content: 'Nenhuma renda fixa lancada', colSpan: 3, styles: { fontStyle: 'italic', textColor: corCinza, halign: 'center' } }]);
-      const totalFixas = d.r_fixas.reduce((a,b)=>a+b.v,0);
+      const totalFixas = rfixasExibir.reduce((a,b)=>a+b.v,0);
       fixasBody.push([
         { content: 'Total', colSpan: 2, styles: { fontStyle: 'bold' } },
         { content: fmt(totalFixas), styles: { fontStyle: 'bold', halign: 'right' } }
