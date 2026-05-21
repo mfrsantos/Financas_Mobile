@@ -1,8 +1,9 @@
-const CACHE_NAME = 'financas-ms-v6.9';
+const CACHE_NAME = 'financas-ms-v6.10';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './sw.js',
   './icon-192x192.jpg',
   './icon-512x512.jpg'
 ];

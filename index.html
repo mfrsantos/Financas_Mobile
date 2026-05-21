@@ -11,6 +11,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -492,6 +498,9 @@
     <main id="aba-despesas" class="tab-content">
       <div class="secao"><h3>🏠 Despesas Fixas</h3><div id="l-contas-fixas"></div><button onclick="abrirModal('contas_fixas')" class="btn-action" style="background:var(--blue)">+ Adicionar Despesa Fixa</button></div>
       <div class="secao"><h3>🛒 Diversas / Lazer</h3><div id="l-contas-diversas"></div><button onclick="abrirModal('contas_diversas')" class="btn-action" style="background:var(--orange)">+ Adicionar Conta Diversa</button></div>
+      <button id="btn-importar-conta" type="button" onclick="abrirModalImportacao()" class="btn-action" style="background:linear-gradient(135deg,#8e44ad,#00a2ff);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px">
+        📎 Importar Conta (PDF / Imagem)
+      </button>
     </main>
 
     <main id="aba-cartao" class="tab-content">
@@ -604,6 +613,106 @@
     <button class="btn-action" style="background:var(--green)" onclick="salvarAntecipacao('extra')">Debit. Extra</button>
     <button class="btn-action" style="background:rgba(255,255,255,0.1)" onclick="fecharModais()">Voltar</button>
   </div></div>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL IMPORTAÇÃO DE CONTA — PDF / IMAGEM
+  ═══════════════════════════════════════════ -->
+  <div id="modal-importacao" class="modal">
+    <div class="modal-content" style="max-width:440px">
+      <div class="modal-handle"></div>
+      <h3>📎 Importar Conta</h3>
+      <p style="color:var(--text-muted);font-size:0.78rem;text-align:center;margin-bottom:14px">
+        Anexe a conta (PDF ou imagem). O sistema lê o valor e vencimento automaticamente.
+      </p>
+
+      <!-- Drop Zone -->
+      <div id="import-dropzone"
+        onclick="document.getElementById('import-file-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--blue)'"
+        ondragleave="this.style.borderColor='rgba(255,255,255,0.15)'"
+        ondrop="event.preventDefault();processarArquivoImport(event.dataTransfer.files[0])"
+        style="border:2px dashed rgba(255,255,255,0.15);border-radius:16px;padding:28px 16px;
+               text-align:center;cursor:pointer;transition:border-color 0.2s;margin-bottom:12px">
+        <div style="font-size:2rem;margin-bottom:8px">📂</div>
+        <p style="font-size:0.82rem;color:var(--text-muted)">Clique ou arraste o arquivo aqui</p>
+        <p style="font-size:0.7rem;color:var(--text-faint);margin-top:4px">Aceita: PDF, JPG, PNG ou WebP</p>
+      </div>
+      <input type="file" id="import-file-input" accept=".pdf,image/*" style="display:none"
+        onchange="processarArquivoImport(this.files[0])">
+
+      <!-- Status de processamento -->
+      <div id="import-status" style="display:none;text-align:center;padding:20px 0">
+        <div class="loading-spinner" style="margin:0 auto 10px;width:32px;height:32px"></div>
+        <p id="import-status-txt" style="font-size:0.8rem;color:var(--text-muted)">Lendo arquivo...</p>
+      </div>
+
+      <!-- Preview dos dados extraídos -->
+      <div id="import-preview" style="display:none">
+        <div style="background:rgba(0,162,255,0.08);border:1px solid rgba(0,162,255,0.2);
+                    border-radius:14px;padding:14px;margin-bottom:14px">
+          <p style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;
+                    letter-spacing:1px;margin-bottom:10px">✨ Dados Detectados</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:0.78rem;color:var(--text-muted)">Descrição</span>
+            <span id="import-preview-desc" style="font-size:0.82rem;font-weight:700;color:#f1f5f9"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:0.78rem;color:var(--text-muted)">Valor</span>
+            <span id="import-preview-valor" style="font-size:1rem;font-weight:900;color:var(--blue)"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.78rem;color:var(--text-muted)">Vencimento</span>
+            <span id="import-preview-data" style="font-size:0.82rem;font-weight:700;color:#f1f5f9"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.78rem;color:var(--text-muted)">Tipo</span>
+            <span id="import-preview-tipo" style="font-size:0.82rem;font-weight:700;color:#f1f5f9"></span>
+          </div>
+        </div>
+
+        <p style="font-size:0.7rem;color:var(--text-faint);text-align:center;margin-bottom:10px">
+          Revise e ajuste os dados abaixo antes de salvar:
+        </p>
+
+        <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">Descrição</label>
+        <input type="text" id="import-desc-edit" placeholder="Ex: Conta de Luz CEMIG">
+
+        <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">Valor (R$)</label>
+        <input type="text" id="import-valor-edit" placeholder="0,00" inputmode="decimal"
+          onblur="formatarInputValor(this)" oninput="this.value=this.value.replace(/[^0-9,]/g,'')">
+
+        <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">Vencimento</label>
+        <input type="date" id="import-data-edit">
+
+        <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">Tipo de Conta</label>
+        <select id="import-tipo-edit" style="margin-bottom:10px;">
+          <option value="Essencial">🏠 Despesa Fixa</option>
+          <option value="Diversa">🛒 Diversa / Lazer</option>
+        </select>
+
+        <select id="import-cat-edit" style="display:none;">
+          <option value="Essencial">🏠 Moradia / Essencial</option>
+          <option value="Lazer">🛒 Lazer / Comida</option>
+          <option value="Saúde">❤️ Saúde</option>
+          <option value="Transporte">🚗 Transporte</option>
+          <option value="Outros">📦 Outros</option>
+        </select>
+
+        <button class="btn-action" style="background:var(--blue)" onclick="confirmarImportacao()">
+          ✅ Adicionar às Despesas
+        </button>
+      </div>
+
+      <!-- Mensagem de erro -->
+      <div id="import-erro" style="display:none;color:var(--red);font-size:0.8rem;
+           text-align:center;padding:10px;background:rgba(231,76,60,0.1);
+           border-radius:10px;margin-bottom:10px"></div>
+
+      <button class="btn-action" style="background:rgba(255,255,255,0.07)" onclick="fecharModalImportacao()">
+        ✖ Cancelar
+      </button>
+    </div>
+  </div>
 
   <script>
     const firebaseConfig = { apiKey: "AIzaSyBXOEwaB-i7hNRe_ezn1mW9G8p7bL6v8K0", authDomain: "ms-financas.firebaseapp.com", projectId: "ms-financas", storageBucket: "ms-financas.firebasestorage.app", messagingSenderId: "825396392769", appId: "1:825396392769:web:0a67fd59dc6bd18391e7c0" };
@@ -1350,6 +1459,270 @@
     function voltarParaPagarCredito() {
       document.getElementById('modal-credito').style.display = 'none';
       document.getElementById('modal-pagar').style.display   = 'flex';
+    }
+
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // IMPORTAÇÃO DE CONTAS — PDF / IMAGEM  (MS Finanças v12.1.0)
+    // ═══════════════════════════════════════════════════════════════
+
+    // Dicionário de 25+ concessionárias e serviços brasileiros
+    const PADROES_CONTAS = [
+      { regex: /cemig/i,                                    cat: 'Essencial',   desc: 'CEMIG' },
+      { regex: /copel/i,                                    cat: 'Essencial',   desc: 'COPEL' },
+      { regex: /\blight\b/i,                               cat: 'Essencial',   desc: 'LIGHT' },
+      { regex: /cpfl/i,                                     cat: 'Essencial',   desc: 'CPFL' },
+      { regex: /energisa/i,                                 cat: 'Essencial',   desc: 'ENERGISA' },
+      { regex: /\benel\b/i,                                cat: 'Essencial',   desc: 'ENEL' },
+      { regex: /coelba/i,                                   cat: 'Essencial',   desc: 'COELBA' },
+      { regex: /elektro/i,                                  cat: 'Essencial',   desc: 'ELEKTRO' },
+      { regex: /celesc/i,                                   cat: 'Essencial',   desc: 'CELESC' },
+      { regex: /\bsaae\b/i,                                cat: 'Essencial',   desc: 'SAAE' },
+      { regex: /copasa/i,                                   cat: 'Essencial',   desc: 'COPASA' },
+      { regex: /sabesp/i,                                   cat: 'Essencial',   desc: 'SABESP' },
+      { regex: /saneago/i,                                  cat: 'Essencial',   desc: 'SANEAGO' },
+      { regex: /embasa/i,                                   cat: 'Essencial',   desc: 'EMBASA' },
+      { regex: /cagece/i,                                   cat: 'Essencial',   desc: 'CAGECE' },
+      { regex: /comg[aá]s|gas natural|c[eé]g\b/i,          cat: 'Essencial',   desc: 'GÁS' },
+      { regex: /caixa\s*econ[oô]mica/i,                     cat: 'Outros',      desc: 'CAIXA ECONOMICA' },
+      { regex: /condom[ií]nio/i,                            cat: 'Essencial',   desc: 'Condomínio' },
+      { regex: /aluguel|loca[çc][aã]o/i,                   cat: 'Essencial',   desc: 'Aluguel' },
+      { regex: /\biptu\b/i,                                cat: 'Essencial',   desc: 'IPTU' },
+      { regex: /\bipva\b/i,                                cat: 'Transporte',  desc: 'IPVA' },
+      { regex: /vivo|telefonica/i,                          cat: 'Outros',      desc: 'Fatura VIVO' },
+      { regex: /\bclaro\b/i,                               cat: 'Outros',      desc: 'Fatura CLARO' },
+      { regex: /\btim\b/i,                                 cat: 'Outros',      desc: 'Fatura TIM' },
+      { regex: /\boi\s|oi\s+s\.a/i,                      cat: 'Outros',      desc: 'Fatura OI' },
+      { regex: /nettv|\bnet\s/i,                           cat: 'Outros',      desc: 'Fatura NET/Claro' },
+      { regex: /\bsky\b/i,                                 cat: 'Outros',      desc: 'Fatura SKY' },
+      { regex: /algar/i,                                    cat: 'Outros',      desc: 'Fatura ALGAR' },
+      { regex: /internet|banda larga/i,                     cat: 'Outros',      desc: 'Internet' },
+      { regex: /seguro (auto|vida|resid)/i,                 cat: 'Outros',      desc: 'Seguro' },
+      { regex: /plano de sa[úu]de|unimed|amil|bradesco sa[úu]de/i, cat: 'Saúde', desc: 'Plano de Saúde' },
+    ];
+
+    function abrirModalImportacao() {
+      fecharModais();
+      document.getElementById('modal-importacao').style.display = 'flex';
+      document.getElementById('import-status').style.display   = 'none';
+      document.getElementById('import-preview').style.display  = 'none';
+      document.getElementById('import-erro').style.display     = 'none';
+      document.getElementById('import-dropzone').style.display = 'block';
+      document.getElementById('import-file-input').value       = '';
+    }
+
+    function fecharModalImportacao() {
+      document.getElementById('modal-importacao').style.display = 'none';
+    }
+
+    const importBtn = document.getElementById('btn-importar-conta');
+    if (importBtn) {
+      importBtn.addEventListener('click', abrirModalImportacao);
+    }
+
+    async function processarArquivoImport(file) {
+      if (!file) return;
+      const dropzone = document.getElementById('import-dropzone');
+      const status   = document.getElementById('import-status');
+      const preview  = document.getElementById('import-preview');
+      const erroEl   = document.getElementById('import-erro');
+
+      dropzone.style.display = 'none';
+      status.style.display   = 'block';
+      preview.style.display  = 'none';
+      erroEl.style.display   = 'none';
+
+      try {
+        let texto = '';
+        if (file.type === 'application/pdf') {
+          document.getElementById('import-status-txt').textContent = '📄 Lendo PDF...';
+          texto = await _extrairTextoPDF(file);
+        } else if (file.type.startsWith('image/')) {
+          document.getElementById('import-status-txt').textContent = '🔍 Iniciando OCR...';
+          texto = await _extrairTextoImagem(file);
+        } else {
+          throw new Error('Formato não suportado. Use PDF, JPG ou PNG.');
+        }
+
+        document.getElementById('import-status-txt').textContent = '🧠 Analisando dados...';
+        const dados = _analisarTextoConta(texto);
+
+        status.style.display = 'none';
+        _preencherPreview(dados);
+        preview.style.display = 'block';
+
+      } catch (e) {
+        status.style.display   = 'none';
+        dropzone.style.display = 'block';
+        erroEl.style.display   = 'block';
+        erroEl.textContent     = '⚠️ ' + (e.message || 'Erro ao processar o arquivo.');
+      }
+    }
+
+    async function _extrairTextoPDF(file) {
+      if (!window.pdfjsLib) throw new Error('pdf.js não carregado. Verifique sua conexão.');
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      let texto = '';
+      for (let i = 1; i <= Math.min(pdf.numPages, 4); i++) {
+        const page    = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        texto += content.items.map(it => it.str).join(' ') + '\n';
+      }
+      if (!texto.trim()) throw new Error('PDF sem texto extraível. Tente escanear como imagem.');
+      return texto;
+    }
+
+    async function _extrairTextoImagem(file) {
+      if (!window.Tesseract) throw new Error('Tesseract.js não carregado. Verifique sua conexão.');
+      const result = await Tesseract.recognize(file, 'por', {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            document.getElementById('import-status-txt').textContent =
+              `🔍 OCR: ${Math.round((m.progress || 0) * 100)}%`;
+          }
+        }
+      });
+      return result.data.text;
+    }
+
+    function _analisarTextoConta(texto) {
+      texto = texto.replace(/[*•]/g, ' ');
+      const linhas = texto.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const textoFlat = texto.replace(/\s+/g, ' ');
+
+      // 1. Detectar fornecedor
+      let desc = 'Conta Importada', cat = 'Essencial';
+      for (const p of PADROES_CONTAS) {
+        if (p.regex.test(textoFlat)) { desc = p.desc; cat = p.cat; break; }
+      }
+
+      // 2. Extrair valor — tentar primeiro linhas que mencionam total/valor a pagar
+      let valor = 0;
+      const rxValor = /(\d{1,3}(?:[\.\s]\d{3})*,\d{2})/g;
+      const valorDeLinha = (linha) => {
+        const encontrados = Array.from(linha.matchAll(rxValor), m => parseFloat(m[1].replace(/[\.\s]/g, '').replace(',', '.')))
+          .filter(v => v > 0 && v < 99999);
+        return encontrados.length ? Math.max(...encontrados) : 0;
+      };
+
+      for (const linha of linhas) {
+        if (/(?:total\W*a\W*pagar|valor\W*a\W*pagar|valor\W*total|total\W*da\W*fatura|valor\W*do\W*documento|total\W*do\W*documento)/i.test(linha)) {
+          valor = valorDeLinha(linha);
+          if (valor) break;
+        }
+      }
+
+      if (!valor) {
+        const candidatos = linhas
+          .filter(l => /(?:total|valor)/i.test(l))
+          .map(valorDeLinha)
+          .filter(v => v > 0);
+        if (candidatos.length) valor = Math.max(...candidatos);
+      }
+
+      if (!valor) {
+        const all = Array.from(textoFlat.matchAll(rxValor), m => parseFloat(m[1].replace(/[\.\s]/g, '').replace(',', '.')))
+          .filter(v => v > 0 && v < 99999);
+        if (all.length) valor = Math.max(...all);
+      }
+
+      // 3. Extrair vencimento — DD/MM/YYYY, DD-MM-YYYY e "15 de Junho de 2026"
+      let dataISO = '';
+      const mesesMap = {
+        'JAN':1,'FEV':2,'MAR':3,'ABR':4,'MAI':5,'JUN':6,
+        'JUL':7,'AGO':8,'SET':9,'OUT':10,'NOV':11,'DEZ':12,
+        'JANEIRO':1,'FEVEREIRO':2,'MARÇO':3,'ABRIL':4,'MAIO':5,'JUNHO':6,
+        'JULHO':7,'AGOSTO':8,'SETEMBRO':9,'OUTUBRO':10,'NOVEMBRO':11,'DEZEMBRO':12
+      };
+      const rxDatas = [
+        /(?:vencimento|vence\s*(?:em)?|data\s*de\s*vencimento)[:\s]*(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})/i,
+        /(\d{2})\s*(?:de\s*)?([A-ZÇa-zç]{3,9})\s*(?:de\s*)?(\d{4})/i,
+        /(\d{2})[\/\-](\d{2})[\/\-](\d{4})/,
+      ];
+      for (const rx of rxDatas) {
+        const m = texto.match(rx);
+        if (!m) continue;
+        let dia, mes, ano;
+        if (isNaN(parseInt(m[2]))) {
+          const k = m[2].toUpperCase().substring(0, 3);
+          const mn = mesesMap[m[2].toUpperCase()] || mesesMap[k];
+          if (mn) { dia = m[1]; mes = String(mn).padStart(2,'0'); ano = m[3]; }
+        } else {
+          dia = m[1]; mes = m[2]; ano = m[3];
+        }
+        if (dia && mes && ano) {
+          const d = new Date(`${ano}-${mes}-${dia}`);
+          if (!isNaN(d.getTime()) && parseInt(ano) >= 2024) {
+            dataISO = `${ano}-${mes}-${dia}`; break;
+          }
+        }
+      }
+
+      return { desc, cat, valor, dataISO };
+    }
+
+    function _preencherPreview({ desc, cat, valor, dataISO }) {
+      const fmtV = v => v > 0
+        ? 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 })
+        : '— não detectado';
+      const fmtD = d => d ? d.split('-').reverse().join('/') : '— não detectado';
+
+      document.getElementById('import-preview-desc').textContent  = desc;
+      document.getElementById('import-preview-valor').textContent = fmtV(valor);
+      document.getElementById('import-preview-data').textContent  = fmtD(dataISO);
+      document.getElementById('import-preview-tipo').textContent  = cat === 'Essencial' ? 'Despesa Fixa' : 'Diversa';
+
+      document.getElementById('import-desc-edit').value  = desc;
+      document.getElementById('import-valor-edit').value = valor > 0
+        ? valor.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 })
+        : '';
+      document.getElementById('import-data-edit').value  = dataISO;
+      document.getElementById('import-tipo-edit').value = cat === 'Essencial' ? 'Essencial' : 'Diversa';
+      document.getElementById('import-cat-edit').value   = cat;
+    }
+
+    async function confirmarImportacao() {
+      const desc   = sanitizar(document.getElementById('import-desc-edit').value.trim());
+      const valor  = parseValor(document.getElementById('import-valor-edit').value);
+      const data   = document.getElementById('import-data-edit').value;
+      const tipo   = document.getElementById('import-tipo-edit').value;
+      let cat      = document.getElementById('import-cat-edit').value;
+
+      if (!desc)  { alert('Informe a descrição da conta.'); return; }
+      if (!valor) { alert('Informe o valor da conta.'); return; }
+      if (!data)  { alert('Informe a data de vencimento.'); return; }
+
+      if (tipo === 'Essencial') {
+        cat = 'Essencial';
+      } else {
+        if (cat === 'Essencial') cat = 'Outros';
+      }
+
+      const mes = document.getElementById('mes_select').value;
+      if (!dados[mes]) dados[mes] = { r_fixas: [], rextras: [], contas: [], pgs: [] };
+      dados[mes].contas.push({ d: desc, v: valor, data, cat, pago: false });
+
+      await save();
+      fecharModalImportacao();
+
+      // Navegar para aba Despesas
+      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 2));
+      document.querySelectorAll('.tab-content').forEach((t, i) => t.classList.toggle('active', i === 2));
+
+      // Toast de sucesso
+      const toast = document.createElement('div');
+      toast.textContent = `✅ "${desc}" — R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:2})} adicionada!`;
+      Object.assign(toast.style, {
+        position:'fixed', bottom:'90px', left:'50%', transform:'translateX(-50%)',
+        background:'rgba(46,204,113,0.97)', color:'#fff', padding:'11px 22px',
+        borderRadius:'14px', fontSize:'0.82rem', fontWeight:'700',
+        zIndex:'99999', boxShadow:'0 6px 24px rgba(0,0,0,0.35)',
+        whiteSpace:'nowrap', animation:'slideUp .3s ease'
+      });
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
     }
 
   </script>
